@@ -143,6 +143,21 @@ describe("agent tool", () => {
 describe("model resolution", () => {
   const modelOf = (inv) => flag(inv, "--model");
 
+  test("inheritance keeps a parent's provider, model and effort even when that provider has no alias table", async () => {
+    const { w, pi } = setup({ sheet: "default effort: session\nsession hook: off\n" });
+    pi.api.getThinkingLevel = () => "xhigh";
+    const ctx = fakeCtx({ cwd: w.cwd, model: { provider: "fixture-provider", id: "session-choice" } });
+    for (const model of [undefined, "inherit-parent", "auto"]) {
+      const result = await pi.call("agent", { description: "inherit", prompt: "x", model }, ctx);
+      expect(result.details.status).toBe("completed");
+    }
+    expect(w.invocations().map((inv) => [flag(inv, "--model"), flag(inv, "--thinking")])).toEqual([
+      ["fixture-provider/session-choice", "xhigh"],
+      ["fixture-provider/session-choice", "xhigh"],
+      ["fixture-provider/session-choice", "xhigh"],
+    ]);
+  });
+
   test("alias, sheet override, inherit-parent, auto, pass-through, and no parent model", async () => {
     const { w, pi, ctx } = setup({ sheet: "default effort: session\npi models: sonnet=openai/sheet-sonnet, haiku=openai/sheet-haiku\n" });
     for (const model of ["opus", "sonnet", "inherit-parent", "auto", "openai/gpt-x", undefined]) {

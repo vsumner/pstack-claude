@@ -209,8 +209,14 @@ export function codexModelNamesSection(models) {
     block: models.codex,
     worker: "fast Codex code model",
     panel: (list) =>
-      `on ChatGPT is ${list}. If only one model family is reachable, vary reasoning ` +
-      "effort and note in the verdict that diversity was reduced.",
+      `on ChatGPT is ${list}. If only one model family is reachable, note in the verdict that diversity ` +
+      "was reduced; vary reasoning effort only when the user selected those differences.",
+    dispatch:
+      "Before dispatching a pstack role, read `${CODEX_HOME:-$HOME/.codex}/pstack-models.md` if it exists. " +
+      "Treat its role choices as overrides. Without an explicit user-selected model or effort, inherit the host " +
+      "session settings; the examples above are not authorization to change providers or models. Use only " +
+      "arguments accepted by this host's current native tool schema. Keep global `AGENTS.md` unchanged; " +
+      "this invocation-time read loads the choices.",
     ids: "Codex model slugs",
   });
 }
@@ -253,7 +259,11 @@ export function piModelNamesSection(models) {
     "`provider/id`, passed through unchanged, and `inherit-parent`, `auto`, or no `model` runs the child on the " +
     "parent's current model. Diverse-model panels (`arena`, `architect`, `interrogate`, `how` critics, `reflect`) " +
     "stay diverse only while their aliases resolve to distinct models. If one model family is all you can reach, " +
-    "vary the reasoning effort and note in the verdict that diversity was reduced.\n\n" +
+    "note that diversity was reduced; vary reasoning effort only when the user selected those differences.\n\n" +
+    "Check any requested alias against the installed Pi catalog with `pi --list-models` before dispatch. " +
+    "A shipped default can be absent on an older host. Do not invent a replacement or switch providers to " +
+    "make it work: use an `inherit-parent` role choice, or an explicitly confirmed listed model through " +
+    "`pi models:`. Catalog presence does not prove account access.\n\n" +
     "`/setup-pstack` writes the configured model list. On Pi, keep the aliases and remap them with `pi models:`."
   );
 }

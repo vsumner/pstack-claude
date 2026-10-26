@@ -13,12 +13,15 @@ pstack skills are written in Claude Code tool language (the `Skill` tool, the `A
 | Fetch a URL | `shell` with `curl` / `wget` |
 | Search the web | `web_search` |
 | Invoke a skill (the `Skill` tool, `/command`) | Skills load natively. Follow the instructions presented. |
-| Dispatch a subagent (the `Agent`/`Task` tool) | `spawn_agent` |
+| Dispatch a subagent (the `Agent`/`Task` tool) | The native `spawn_agent` or collaboration tool exposed by this host; use its current schema. |
+| Request a read-only reviewer | Use a native read-only role or sandbox only when the host exposes one. Otherwise scope the brief and verify the resulting diff; a brief is not a sandbox. |
 | Dispatch N parallel subagents in one turn | N `spawn_agent` calls in one response |
 | Wait for a subagent result | `wait_agent` |
 | Free a finished subagent slot | `close_agent`, when the session exposes it. Some Codex hosts don't. |
 | Track tasks (the todolist; `TaskCreate` / `TaskUpdate`, or `TodoWrite` on Claude Code) | `update_plan` |
-| Ask the human a fixed-choice question (`AskUserQuestion`) | Ask in plain text and let the user answer. Codex has no structured-choice tool. |
+| Ask the human a fixed-choice question (`AskUserQuestion`) | Use the structured question tool exposed by this host when its mode permits; otherwise ask in plain text. |
+| Steer or continue a subagent | Use the current native send-input, message, or follow-up action and its actual schema. Preserve the fresh-agent rule below. |
+| Stop a subagent | Use the native stop or interrupt action, confirm its reported status, and separately account for any subprocesses it left running. |
 
 Subagent dispatch needs `multi_agent` enabled. Add to `~/.codex/config.toml`:
 
@@ -37,7 +40,7 @@ poteto-mode's Subagents section sets Claude-specific defaults (`subagent_type: "
 
 - There is no `poteto-agent` subagent type. Route an ad-hoc subagent through poteto-mode's style by dispatching a `spawn_agent` whose instructions tell it to read the `poteto-mode` skill in full first.
 - `spawn_agent` calls already run concurrently with your turn, so `run_in_background: true` has no separate flag. Issue the dispatch and continue.
-- When a role value carries `@<level>`, or the `default effort` line names a level, pass that level as `spawn_agent`'s `reasoning_effort` and keep the dispatch otherwise unchanged. `session` passes no `reasoning_effort`.
+- When a role value carries `@<level>`, or the `default effort` line names a level, pass that saved level only through an effort field this host exposes. `session` passes no effort override and keeps the parent's effort without an implicit adjustment. A saved `inherit-parent` or `auto` model passes no model override. Host tool schemas and their model/effort restrictions take precedence.
 - There is no `comment-sicko` subagent type either. The **no-comments** skill spawns it on Claude Code; on Codex dispatch a `spawn_agent` whose instructions tell it to read `poteto-mode/references/agents/comment-sicko.md` in full first.
 - There are no `thermo-nuclear-review-subagent` or `thermo-nuclear-code-quality-review-subagent` types. The **thermos** skill spawns both on Claude Code; on Codex dispatch two `spawn_agent` calls whose instructions tell each to read the `thermo-nuclear-review` or `thermo-nuclear-code-quality-review` skill in full first and review only the diff and file contents in its prompt.
 - Claude Code runs every subagent on this machine, so the **swarm** skill's workers and the fan-out playbooks (`orchestrate`, `autopilot-full`, `autopilot-stack`) isolate writers with worktrees. The same holds on Codex.
@@ -50,7 +53,9 @@ Skills name Claude defaults (a single-role default for code/prose/judgment, a wo
 - Single-model roles: your primary Codex model (for example `gpt-6-sol`).
 - Roles that default to the Claude worker model (`feature, refactoring`): your fast Codex code model (for example `gpt-6-sol`).
 - Roles that default to the strongest Claude model (`strongest judgment`): your strongest Codex model (for example `gpt-6-astra`).
-- Diverse-model panels (`arena`, `architect`, `interrogate`, `how` critics, `reflect`): the adversarial signal comes from model diversity, so use the distinct Codex models available to you. A good default panel on ChatGPT is `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`. If only one model family is reachable, vary reasoning effort and note in the verdict that diversity was reduced.
+- Diverse-model panels (`arena`, `architect`, `interrogate`, `how` critics, `reflect`): the adversarial signal comes from model diversity, so use the distinct Codex models available to you. A good default panel on ChatGPT is `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`. If only one model family is reachable, note in the verdict that diversity was reduced; vary reasoning effort only when the user selected those differences.
+
+Before dispatching a pstack role, read `${CODEX_HOME:-$HOME/.codex}/pstack-models.md` if it exists. Treat its role choices as overrides. Without an explicit user-selected model or effort, inherit the host session settings; the examples above are not authorization to change providers or models. Use only arguments accepted by this host's current native tool schema. Keep global `AGENTS.md` unchanged; this invocation-time read loads the choices.
 
 `/setup-pstack` writes the configured model list. On Codex, set it to your Codex model slugs.
 
@@ -77,7 +82,7 @@ Affected skill entry points and the optional Codex slash stubs point here. Most 
 
 | Skill | On Codex |
 |-------|----------|
-| `interrogate` | The `subagent_type`/`model`/`readonly` dispatch fields map to `spawn_agent`; substitute your configured Codex models and keep the reviewer panel model-diverse. |
+| `interrogate` | Dispatch through the native subagent tool using its current schema. Role models follow Model names above; `readonly` requires an exposed native restriction, as Tool actions explains. Report any missing model diversity. |
 | `setup-pstack` | The skill's Other runtimes table names the Codex sheet path and how it loads; the slugs are your Codex models (see Model names above). The role rows are identical. |
 | `no-comments` | There is no `comment-sicko` subagent type; see Subagent policy above. |
 | `thermos` | There are no thermo-nuclear subagent types; see Subagent policy above. |
