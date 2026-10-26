@@ -2,6 +2,12 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## Unreleased - Respect host settings in Pi and Codex
+
+The Codex mapping reads saved role choices when dispatching instead of asking setup to rewrite global `AGENTS.md`. Native question, continuation, stop, and read-only actions follow the host's exposed schema. Pi and Codex keep inherited effort and saved choices without implicit effort adjustments. Workflow text preserves the user's existing authority.
+
+The Pi mapping now describes the extension and skills paths actually passed to children, warns that other parent restrictions are not copied, and requires a listed model or an explicit inheritance choice when an older host lacks a shipped alias. Model IDs, alias fallback, runtime lifecycle, dependencies, and automatic-routing defaults are unchanged.
+
 ## 0.9.102 - The skill link validator keeps angle-bracket destinations
 
 `tools/validate-skills.mjs` now reads a Markdown link destination written in angle brackets, such as `[text](<path with spaces.md>)`, as the path inside the brackets. It used to check the brackets as part of the path, so a link to an existing file was reported as broken. No skill content changed. `tests/agent-skills.test.mjs` covers the case.
