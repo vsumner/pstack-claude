@@ -26,25 +26,14 @@ Run in Claude Code 2.1.292 or later:
 <details>
 <summary><strong>Codex</strong></summary>
 
-Run in your terminal:
-
-```shell
-codex plugin marketplace add michael-denyer/pstack-claude
-codex plugin add pstack@pstack-claude
-```
+Use this fork's [pinned Pi/Codex setup](docs/installing-pi-codex.md), including the local marketplace update and rollback steps. Select `pstack:poteto-mode` from the `$` skill picker in a fresh session. Explicit skills work without trusting the routing hook.
 
 </details>
 
 <details>
 <summary><strong>Pi</strong></summary>
 
-Run in your terminal:
-
-```shell
-pi install git:github.com/michael-denyer/pstack-claude
-```
-
-The package loads the skills and the pstack Pi extension, which adds the subagent, question, and wake-up tools the skills use, plus `/loop` and the routing instruction. Invoke a skill with `/skill:<name>`.
+Use this fork's [pinned Pi/Codex setup](docs/installing-pi-codex.md). The Pi package loads the shared skills and extension, including subagent tools and `/loop`. Invoke a skill with `/skill:<name>`. Turning pstack routing off suppresses its mandate; Pi can still select skills from their descriptions.
 
 </details>
 

@@ -16,7 +16,7 @@ Before creating or maintaining a skill, inspect the project's existing `.agents/
 
 An existing skill that this host does not discover can be read by its exact path when authorized. That does not register it with the host. In particular, Pi does not automatically discover `.claude/skills/`. Do not move existing skills, change host configuration, or change project trust merely to make them discoverable.
 
-For a new skill, resolve `<project-skills>` to the table's root, or an existing supported project root the user selected. Write `<project-skills>/<name>/SKILL.md`, with matching `name` frontmatter. In a monorepo, use the touched package's project root. Put the skill's feature map and helpers inside that same resolved directory. Replace every placeholder with the actual path in the generated instructions.
+For a new skill, resolve `<project-skills>` to the table's root, or an existing supported project root the user selected. Write `<project-skills>/<name>/SKILL.md`, with matching `name` frontmatter. In a monorepo, use the touched package's project root, and report that ancestor-based discovery requires the host's cwd to be inside that package; launching from the repository root does not scan every nested package. Put the skill's feature map and helpers inside that same resolved directory. Replace every placeholder with the actual path in the generated instructions.
 
 The verification generator defaults to `verify`. On Claude Code that name replaces its bundled user-only command. Honor an explicitly requested name such as `verify-app`; callers must then use that actual skill name or path. This naming rule does not turn a formal checker into an app-driving skill.
 

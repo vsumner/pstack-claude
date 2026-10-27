@@ -2,6 +2,10 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## Unreleased - Reproducible host discovery and restricted test selection
+
+Pi/Codex setup documents immutable source, native updates and rollback, invocation, project trust, hook trust and routing versus host implicit skill selection. Explicit test subsets separate restricted-environment-safe contracts/discovery from process-identity-dependent lifecycle checks. An optional native Codex regression checks this checkout in disposable homes, including paths, duplicate names and untrusted hooks; missing binaries are reported as skips and required or unsupported capabilities fail explicitly. No runtime lifecycle, invocation policy, model choice or trust setting changes.
+
 ## 0.9.103 - Portable project skills and scoped verification evidence
 
 Generated drivers, formal checkers and personal modes resolve their output and maintenance searches through the active host's project-skill roots. Pi and Codex default to `.agents/skills/`; Claude Code keeps `.claude/skills/`. Existing custom names, categories and supported paths are preserved. Driver callers, authoring, help and reflection share the same policy without changing host settings or trust.
