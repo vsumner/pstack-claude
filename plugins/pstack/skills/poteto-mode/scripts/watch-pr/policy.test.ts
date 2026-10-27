@@ -1088,3 +1088,34 @@ describe("a PR with no checks configured", () => {
       });
   });
 });
+
+
+it("preserves the poll interval when the shared deadline is disabled", async () => {
+  let now = 0;
+  let reads = 0;
+  const sleeps: number[] = [];
+  const pending = fakeReader({ fastPath: { kind: "checks", checks: [pendingCheck()] } });
+  const passed = fakeReader({ fastPath: { kind: "checks", checks: [passingCheck()] } });
+  const result = await runSimple({
+    dependencies: {
+      reader: {
+        ...pending,
+        async checksFastPath(pr) {
+          reads += 1;
+          return reads === 1 ? pending.checksFastPath(pr) : passed.checksFastPath(pr);
+        },
+      },
+      clock: {
+        now: () => now,
+        observedAt: () => "fixture",
+        async sleep(seconds) { sleeps.push(seconds); now += seconds; },
+      },
+      deadline: new WatchDeadline(0, () => now),
+      emit() {},
+    },
+    contexts: [context(1)], mode: "single", statusOnly: false,
+    options: { ...options, interval: 60, timeout: 0 },
+  });
+  expect(result.kind).toBe("READY");
+  expect(sleeps).toEqual([60]);
+});

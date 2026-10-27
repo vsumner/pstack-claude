@@ -1296,7 +1296,11 @@ function branchPullRequest({
     repo,
     localRepository,
   });
-  const row = local[0];
+  // Ignore closed or merged history when this branch has an active local PR.
+  // Keep historical anchors when none is open; never admit a foreign head.
+  const active = local.filter((row) => row.state === "OPEN");
+  const candidates = active.length > 0 ? active : local;
+  const row = candidates[0];
   if (row === undefined) {
     const ignored =
       foreign.length === 0 || localRepository === null
@@ -1311,9 +1315,9 @@ function branchPullRequest({
       `branch ${branch} has no pull request${ignored}; open one with ${forge} pr create, or resolve the frontier from a branch whose chain is fully submitted`
     );
   }
-  if (local.length > 1) {
+  if (candidates.length > 1) {
     throw new UserError(
-      `branch ${branch} has multiple pull requests (${local.map((item) => `#${item.pr}`).join(", ")}); close the stale ones first`
+      `branch ${branch} has multiple pull requests (${candidates.map((item) => `#${item.pr}`).join(", ")}); close the stale ones first`
     );
   }
   return row;

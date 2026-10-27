@@ -45,3 +45,25 @@ test("the workflow preserves existing authority instead of granting external-act
   expect(skill).toContain("Apply authority the user already granted");
   expect(skill).not.toContain("external actions (team chat, ticket updates, kicking off evals) proceed without asking");
 });
+
+
+test("host tool capabilities and completion do not assume one universal API", () => {
+  const codex = read("poteto-mode/references/codex-tools.md");
+  const pi = read("poteto-mode/references/pi-tools.md");
+  const skill = read("poteto-mode/SKILL.md");
+  expect(codex).toContain("not a universal API");
+  expect(codex).toContain("for example `wait` or `wait_agent`");
+  expect(codex).toContain("do not add a separate process manager");
+  expect(codex).not.toContain("| Run a shell command | `shell` |");
+  expect(pi).toContain("Pi core 1.4 has no `pi mcp list` command");
+  expect(skill).toContain("On Pi, `completed` means the child process exited");
+  expect(skill).not.toContain("Only an explicit stop ends it");
+});
+
+test("reflection copies use host roots and protect pinned installs", () => {
+  const text = read("reflect/SKILL.md");
+  expect(text).toContain("pinned package snapshots as immutable");
+  expect(text).toContain("[project skill locations](../poteto-mode/references/project-skills.md)");
+  expect(text).toContain("duplicate-name discovery effect before copying");
+  expect(text).not.toContain("show its destination, `.claude/skills/");
+});

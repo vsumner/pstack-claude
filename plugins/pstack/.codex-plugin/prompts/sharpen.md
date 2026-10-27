@@ -1,6 +1,6 @@
 ---
 name: sharpen
-description: aim a task at what you are really after, the way a top expert would, without overspecifying it
+description: rewrite a prompt with expert methods and an outside check; does not execute the task
 disable-model-invocation: true
 ---
 
