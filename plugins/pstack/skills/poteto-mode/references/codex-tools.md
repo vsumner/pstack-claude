@@ -106,7 +106,7 @@ Affected skill entry points and the optional Codex slash stubs point here. Most 
 
 ## Vendored scripts
 
-The optional helpers keep their existing entrypoints. Read [helper prerequisites](helper-prerequisites.md) before invoking them: the Bun CLIs lazily install locked runtime dependencies into their own writable scripts directory, even for `--help`. A read-only cache is not a suitable bootstrap location. The Node worktree audit also scans session directories; scope transcript access to the current authorization.
+The optional helpers keep their existing entrypoints. Read [helper prerequisites](helper-prerequisites.md) before invoking them: the Bun CLIs lazily install locked runtime dependencies into their own writable scripts directory, even for `--help`. A read-only cache is not a suitable bootstrap location. Resolve the exact writable checkout and durable program store through [operational helpers](operational-helpers.md) before invoking a Bun entrypoint. The Node worktree audit also scans session directories; scope transcript access to the current authorization.
 
 ## Instructions file
 
