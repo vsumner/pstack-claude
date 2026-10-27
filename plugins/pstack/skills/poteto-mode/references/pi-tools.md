@@ -68,6 +68,8 @@ Check any requested alias against the installed Pi catalog with `pi --list-model
 
 The pstack Pi extension adds the poteto-mode mandate, the text the Claude Code and Codex `SessionStart` hook injects, to the system prompt at every agent start, so the mandate survives compaction. It also adds the Pi override sheet, because Pi has no include syntax for context files. The sheet is `pstack-models.md` in the Pi agent directory, which is `$PI_CODING_AGENT_DIR` when set and `~/.pi/agent` otherwise. `session hook: off` in the sheet stops the mandate. Child agents that the `agent` tool starts get the sheet but not the mandate, as Claude Code subagents see CLAUDE.md but run no `SessionStart` hook. Every session, child agents and sessions with the hook off included, also gets a pointer to this file and Claude Code's sentence on making independent tool calls in one response.
 
+Routing off does not disable Pi's implicit skill selection. Project `.agents/skills/` and `.pi/skills/` loading is trust-gated in Pi 1.4; headless runs with no applicable trust decision skip those resources. Context files such as AGENTS.md still load independently. Trust is not a filesystem/network sandbox; do not add approval flags or edit trust/settings to make a missing skill appear.
+
 Without the extension nothing is injected. Request `poteto-mode` explicitly with `/skill:poteto-mode`, or add a standing instruction to `AGENTS.md`.
 
 ## Driver and bundled skills pstack references

@@ -23,14 +23,14 @@ pstack skills are written in Claude Code tool language (the `Skill` tool, the `A
 | Steer or continue a subagent | Use the current native send-input, message, or follow-up action and its actual schema. Preserve the fresh-agent rule below. |
 | Stop a subagent | Use the native stop or interrupt action, confirm its reported status, and separately account for any subprocesses it left running. |
 
-Subagent dispatch needs `multi_agent` enabled. Add to `~/.codex/config.toml`:
+Check the native collaboration tools this host exposes first. Codex CLI 0.163 enables `multi_agent` by default. On older or explicitly disabled setups, the user can choose this configuration; do not change global config merely to follow the example:
 
 ```toml
 [features]
 multi_agent = true
 ```
 
-Without it, `spawn_agent` is unavailable and the fan-out skills (`interrogate`, `why`, `how`, `arena`, `reflect`) degrade to a single sequential pass. A required independent review does not degrade. It stays blocked, as poteto-mode's [Subagents](../SKILL.md#subagents) section says.
+When native dispatch is unavailable, the fan-out skills (`interrogate`, `why`, `how`, `arena`, `reflect`) degrade to a single sequential pass. A required independent review does not degrade. It stays blocked, as poteto-mode's [Subagents](../SKILL.md#subagents) section says.
 
 Enabling `multi_agent` does not lift the host's thread limit. A thread-limit error from `spawn_agent` is a capacity error, not a rejected model slug, so the skills' fallback to another model does not apply. After the first capacity rejection, stop spawning. Close a finished agent with `close_agent` before you try again, and where the session has no `close_agent`, do not assume a finished agent's slot is free.
 
@@ -40,7 +40,7 @@ poteto-mode's Subagents section sets Claude-specific defaults (`subagent_type: "
 
 - There is no `poteto-agent` subagent type. Route an ad-hoc subagent through poteto-mode's style by dispatching a `spawn_agent` whose instructions tell it to read the `poteto-mode` skill in full first.
 - `spawn_agent` calls already run concurrently with your turn, so `run_in_background: true` has no separate flag. Issue the dispatch and continue.
-- When a role value carries `@<level>`, or the `default effort` line names a level, pass that saved level only through an effort field this host exposes. `session` passes no effort override and keeps the parent's effort without an implicit adjustment. A saved `inherit-parent` or `auto` model passes no model override. Host tool schemas and their model/effort restrictions take precedence.
+- When a role value carries `@<level>`, or the `default effort` line names a level, pass that saved level only through an effort field this host exposes. `session` passes no effort override and delegates to native inheritance/defaults without an implicit adjustment by pstack. With no selected model override this normally keeps the parent's effort; an explicitly selected model can use its own default, depending on the host. A saved `inherit-parent` or `auto` model passes no model override. Host tool schemas and their model/effort restrictions take precedence.
 - There is no `comment-sicko` subagent type either. The **no-comments** skill spawns it on Claude Code; on Codex dispatch a `spawn_agent` whose instructions tell it to read `poteto-mode/references/agents/comment-sicko.md` in full first.
 - There are no `thermo-nuclear-review-subagent` or `thermo-nuclear-code-quality-review-subagent` types. The **thermos** skill spawns both on Claude Code; on Codex dispatch two `spawn_agent` calls whose instructions tell each to read the `thermo-nuclear-review` or `thermo-nuclear-code-quality-review` skill in full first and review only the diff and file contents in its prompt.
 - Claude Code runs every subagent on this machine, so the **swarm** skill's workers and the fan-out playbooks (`orchestrate`, `autopilot-full`, `autopilot-stack`) isolate writers with worktrees. The same holds on Codex.
@@ -61,7 +61,7 @@ Before dispatching a pstack role, read `${CODEX_HOME:-$HOME/.codex}/pstack-model
 
 ## Session routing hook
 
-The native pstack plugin bundles the same `SessionStart` routing instruction as the Claude Code plugin, through `session-start.sh` on macOS and Linux and `session-start.ps1` on Windows. Codex runs the hook on startup, resume, clear, and compact after the user trusts the hook through `/hooks`. The hook reads `session hook` from the Codex sheet, at the path in [setup-pstack's runtime table](../../setup-pstack/SKILL.md#other-runtimes); `session hook: off` disables injection.
+The native pstack plugin bundles the same `SessionStart` routing instruction as the Claude Code plugin, through `session-start.sh` on macOS and Linux and `session-start.ps1` on Windows. Codex runs supported lifecycle events only after the user trusts the hook through `/hooks`. The hook reads `session hook` from the Codex sheet, at the path in [setup-pstack's runtime table](../../setup-pstack/SKILL.md#other-runtimes); `session hook: off` disables injection. Installation and explicit skill discovery do not require hook trust. Routing off does not disable the host's implicit skill selection, and is not permission to change invocation policy or trust.
 
 A skills-only installation does not include plugin hooks. Request `poteto-mode` explicitly or add a standing instruction to `AGENTS.md` in that case.
 

@@ -1,4 +1,5 @@
-// CLI regressions against installed Pi, with no model calls or credentials.
+// CLI regressions with no model calls or credentials, but AgentRunner.start
+// still inspects child identity (/proc or ps). Not in the restricted-safe suite.
 import { describe, expect, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";

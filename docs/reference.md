@@ -107,20 +107,20 @@ The [CI installation check](../.github/workflows/ci.yml) uses the skills CLI to 
 
 ### Codex
 
-The [native plugin manifest](../plugins/pstack/.codex-plugin/plugin.json) points to the shared skills directory and the Codex [SessionStart hook](../plugins/pstack/hooks/codex-hooks.json). The [marketplace catalog](../.agents/plugins/marketplace.json) lists `pstack` in the `pstack-claude` marketplace. Review and trust the hook through `/hooks`; Codex asks again when its definition changes.
+The [native plugin manifest](../plugins/pstack/.codex-plugin/plugin.json) points to the shared skills directory and the Codex [SessionStart hook](../plugins/pstack/hooks/codex-hooks.json). The [marketplace catalog](../.agents/plugins/marketplace.json) lists `pstack` in the `pstack-claude` marketplace. Installation and explicit skill use do not require hook trust. If the user chooses automatic routing, review the hook through `/hooks`; a changed definition needs another trust decision.
 
-The [README installation](../README.md#codex) registers that catalog with `codex plugin marketplace add`, then installs the plugin with `codex plugin add`. These commands match the help output from `codex-cli 0.154.0-alpha.6.2`. A fresh native installation was not tested for this documentation change.
+The [pinned fork installation](installing-pi-codex.md) registers that catalog with `codex plugin marketplace add`, then installs the plugin with `codex plugin add`. The documented baseline is Codex CLI 0.163.0 and pstack 0.9.103, checked with isolated registration/cache and native metadata probes. This verifies discovery and hook trust state, not live model or subagent behavior. Latest official docs may describe capabilities beyond that installed version.
 
 OpenAI documents [marketplace registration and the plugin format](https://developers.openai.com/plugins/build/plugins#add-a-marketplace-from-the-cli). If your CLI lacks `plugin add`, use the plugin browser after registering the marketplace, or use the [skills-only installation](#shared-skills-installation).
 
-Request `poteto-mode` by name or select its entry, such as `pstack:poteto-mode`. To enable parallel subagents:
+Type `$` and select the actual skill entry, such as `pstack:poteto-mode`. Codex 0.163 enables multi-agent support by default; first check which native tools the current host exposes. On an older or explicitly disabled setup, the user can choose to enable it:
 
 ```toml
 [features]
 multi_agent = true
 ```
 
-Add this setting to `~/.codex/config.toml` if subagents are disabled. Skills such as `arena`, `interrogate`, and `architect` use parallel agents. The [mapping](../plugins/pstack/skills/poteto-mode/references/codex-tools.md) describes a sequential fallback and translates Claude tool names, model defaults, and verification instructions.
+Do not change global config just to follow an older example. Skills such as `arena`, `interrogate`, and `architect` use parallel agents. The [mapping](../plugins/pstack/skills/poteto-mode/references/codex-tools.md) describes a sequential fallback and translates Claude tool names, model defaults, and verification instructions. Routing off disables the pstack mandate, not native implicit skill selection.
 
 For optional slash-command shortcuts, run this from the clone's root:
 
@@ -136,7 +136,7 @@ Each shortcut invokes its skill. The commands skip existing files and links. Rem
 
 ### Pi
 
-The repository root is a [Pi package](https://pi.dev/packages): its [`package.json`](../package.json) lists the shared skills directory and the [pstack Pi extension](../plugins/pstack/pi/index.ts). Install it with `pi install git:github.com/michael-denyer/pstack-claude`, or `pi install <clone path>` for a local checkout.
+The repository root is a [Pi package](https://pi.dev/packages): its [`package.json`](../package.json) lists the shared skills directory and the [pstack Pi extension](../plugins/pstack/pi/index.ts). Use the [pinned fork installation](installing-pi-codex.md) and `pi install <snapshot path>`. On Pi 1.4, bare `pi update` updates Pi itself; `pi update --extensions` reconciles packages without moving configured Git refs.
 
 The extension supplies what Pi lacks natively, under the Claude Code names the skills use:
 

@@ -2,6 +2,8 @@
 
 This table lists every Claude Code mechanism the pstack plugin depends on, found by scanning `plugins/pstack/` for tool names, agent fields, hooks, paths, bundled skills, CLIs, and model names. Each row says how Pi 1.1 provides the same behavior and what proves it. `tests/pi-equivalence.test.mjs` fails when a row lacks a valid status, when an `extension` or `script` row names a test that does not exist, or when a `difference` row gives no reason.
 
+The Live column is inherited upstream evidence from that Pi 1.1 port, not a new live run of this fork. The [pinned fork baseline](installing-pi-codex.md) was checked offline on Pi 1.4.0 and Codex 0.163.0. It does not re-establish the historical live verdicts or blocked process-identity coverage.
+
 Statuses:
 
 - `native`: Pi does it without pstack code.
@@ -56,7 +58,7 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 | F05 | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/shell-snapshots/` cleanup advice | Cleanup advice only | n/a | worktree-cleanup playbook | n/a |
 | F06 | `.claude/worktrees` | The extension uses the same path | extension | `keeps a worktree with changes and reports its path and branch` | n/a |
 | S01 | Bundled `run` skill | Run the app through `bash` | mapping | pi-tools.md Driver and bundled skills | n/a |
-| S02 | `verify` skill | Read the project skill by path or add it to Pi's `skills` setting | mapping | pi-tools.md Driver and bundled skills | n/a |
+| S02 | `verify` skill | Native `.agents/skills/` discovery from cwd/ancestors, subject to project trust; an authorized path read does not register a skill | mapping | pi-tools.md Driver and bundled skills | n/a |
 | S03 | `loop` skill | `/loop [interval] <prompt>` and self-paced `schedule_wakeup` | extension | `a fixed interval runs now and then on every interval until /loop stop` | VERIFIED |
 | S04 | `plugin-dev:skill-development` | Pi's skills docs and the Agent Skills specification | mapping | pi-tools.md Driver and bundled skills | n/a |
 | S05 | Bundled `babysit` disambiguation | Pi has no bundled `babysit`, so only pstack's exists | n/a | poteto-mode Non-negotiables | n/a |
