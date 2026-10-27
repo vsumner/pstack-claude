@@ -1,6 +1,6 @@
 # Pinned Pi and Codex setup
 
-These instructions target the `vsumner/pstack-claude` fork. The reviewed baseline is **0.9.103**, commit **b9398b297c693b925a709946674b9be6f9a2ec5f**, checked offline with **Pi 1.4.0** and **Codex CLI 0.163.0**. Later source or host versions need their own checks. The upstream project and Claude Code installation remain available in the [README](../README.md).
+These instructions target the `vsumner/pstack-claude` fork. The historical reviewed installation baseline is **0.9.103**, commit **c6c138bd0e3e010f18ba5fd3c43c94e402d1b164**, checked offline with **Pi 1.4.0** and **Codex CLI 0.163.0**. The 0.9.104 alignment release has its own PR evidence; choose its exact reviewed commit when installing it. Later source or host versions need their own checks. The upstream project and Claude Code installation remain available in the [README](../README.md).
 
 ## Inspect and back up first
 
@@ -12,7 +12,7 @@ Before changing registration, make a private backup and record each path's exist
 | --- | --- |
 | `${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/settings.json` | The one pstack package declaration |
 | `${CODEX_HOME:-$HOME/.codex}/config.toml` | The pstack marketplace/plugin blocks |
-| `${CODEX_HOME:-$HOME/.codex}/plugins/cache/pstack-claude/` | The versioned plugin cache; marketplace removal can remove it |
+| `${CODEX_HOME:-$HOME/.codex}/plugins/cache/pstack-claude/` | The versioned plugin cache; explicit plugin removal/reinstallation changes it |
 | The new snapshot directory | New source only; keep the old snapshot |
 
 Back up only the affected config/cache paths, preserving file modes and symlinks. Record absent paths as absent. Keep auth files, sessions, global AGENTS instructions, project guidance and existing `pstack-models.md` profiles untouched. If the user explicitly chooses a routing-setting change, add that sheet to the backup too and preserve every other row. Check that each backup exists and matches the pre-update fingerprints. Record the post-update fingerprints too, so rollback can refuse later user changes.
@@ -22,7 +22,7 @@ Back up only the affected config/cache paths, preserving file modes and symlinks
 Run one command at a time and stop on any error. The destination must be new. If it already exists, verify it instead of deleting or overwriting it.
 
 ```sh
-pstack_rev=b9398b297c693b925a709946674b9be6f9a2ec5f
+pstack_rev=c6c138bd0e3e010f18ba5fd3c43c94e402d1b164
 pstack_root="$HOME/.local/share/pstack-claude/$pstack_rev"
 git clone --no-checkout https://github.com/vsumner/pstack-claude.git "$pstack_root"
 git -C "$pstack_root" checkout --detach "$pstack_rev"
@@ -55,10 +55,13 @@ After creating and reviewing a new snapshot and making the backup above, close e
 ```sh
 pi remove "$pstack_old_root"
 pi install "$pstack_root"
+codex plugin remove pstack@pstack-claude --json
 codex plugin marketplace remove pstack-claude --json
 codex plugin marketplace add "$pstack_root" --json
 codex plugin add pstack@pstack-claude --json
 ```
+
+Codex 0.163 leaves the installed plugin cache behind when only its marketplace is removed. Explicitly remove the plugin first, especially when source files changed without a version change; otherwise reinstalling can reuse stale bytes. Verify the resulting cached file tree against the exact new source, excluding documented host metadata. This remove/reinstall sequence was verified for same-version snapshots in disposable homes; it grants no hook trust.
 
 Codex 0.163 rejects adding an existing marketplace name from a different local source. The supported remove/add sequence was checked in disposable homes. `codex plugin marketplace upgrade` refreshes Git-backed marketplace snapshots; it does not replace this local-path sequence. Pi's bare `pi update` updates the **host**. `pi update --extensions` updates packages, and configured Git refs stay pinned. None of those commands switches this local snapshot to a new commit automatically.
 
@@ -86,6 +89,10 @@ Codex plugin installation does not trust hooks. Keep the routing hook untrusted 
 Pi project trust controls resource loading, not filesystem/network permissions. AGENTS/CLAUDE context can still load when project resources are skipped. Parent transient trust flags and other CLI restrictions are not automatically copied into a pstack child. Read-only agent tools retain shell access, and worktrees isolate Git state rather than security authority. See [Pi 1.4 security documentation](https://github.com/earendil-works/pi/blob/v1.4.0/packages/coding-agent/docs/security.md).
 
 The baseline checks covered offline contracts, native metadata discovery and routing-off behavior. No live provider/account validation, native Codex subagent turn, or process-identity/orphan checks were run under the restricted process policy. Historical upstream live results in [Pi equivalence](pi-equivalence.md) are separate evidence, not current proof for this fork. Use [restricted-safe tests](../CONTRIBUTING.md#restricted-environment-checks) for repeatable offline coverage.
+
+## Optional helper prerequisites
+
+See the package-local [helper prerequisites](../plugins/pstack/skills/poteto-mode/references/helper-prerequisites.md) for Bun/Node entrypoints, lazy locked bootstrap, writable-directory requirements and data/access scope. Ordinary explicit skills and native host discovery do not require these optional helpers.
 
 ## Roll back without overwriting later work
 

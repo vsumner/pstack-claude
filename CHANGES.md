@@ -2,7 +2,13 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
-## Unreleased - Reproducible host discovery and restricted test selection
+## 0.9.104 - Bounded upstream alignment and accurate host guidance
+
+Partially aligns the pstack component to Cursor `519d36aa98955bf680db01bcde5fdfba686dc901` (0.15.34). Adopts replacement-PR selection, multi-backtick plan parsing, explicit prompt rewriting and swarm numbering fixes. Adapts immutable reflection destinations to each host. Existing repository-aware PR identity, shared polling deadline and portable Node worktree audit remain intact. Statechart/video tooling and their cross-links are deliberately excluded; this is not full upstream parity. The [file-level alignment record](docs/upstream-alignment.md) accounts for all 22 changed existing upstream files.
+
+Host mappings resolve capabilities from exposed schemas, qualify completion by host and preserve native Codex worker lifecycle and Pi bridge safeguards. Installation guidance explicitly removes the Codex plugin before changing marketplaces, covering unchanged-version cache identity, and documents the existing lazy Bun dependency bootstrap and its writable-directory requirement. No model, effort, routing, trust or host configuration changes.
+
+The earlier reliability patch is included in this release:
 
 Pi/Codex setup documents immutable source, native updates and rollback, invocation, project trust, hook trust and routing versus host implicit skill selection. Explicit test subsets separate restricted-environment-safe contracts/discovery from process-identity-dependent lifecycle checks. An optional native Codex regression checks this checkout in disposable homes, including paths, duplicate names and untrusted hooks; missing binaries are reported as skips and required or unsupported capabilities fail explicitly. No runtime lifecycle, invocation policy, model choice or trust setting changes.
 

@@ -55,6 +55,8 @@ Present the synthesizer's full Accepted / Rejected / Backlog output and wait for
 
 File each Backlog item to your team's devex or backlog tracker without waiting. Only the Accepted list waits for approval.
 
+Treat installed plugin caches and pinned package snapshots as immutable. Before approval, show the destination resolved through [project skill locations](../poteto-mode/references/project-skills.md), using the active host's project or personal root. After approval, update an existing compatible local skill in place. For an installed/cache source, copy the folder to the approved local destination and edit that copy. Check for an existing skill and explain any duplicate-name discovery effect before copying; do not change registration or trust automatically. Never open a PR or push as part of this reflection.
+
 Follow each approved row's Routing exactly:
 
 - Trivial existing-skill edit (a one-line bullet, a tightened sentence, a stale fact corrected): the parent does it directly.

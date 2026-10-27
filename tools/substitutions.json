@@ -40,7 +40,7 @@
       "rationale": "Claude Code's system prompt does not name a transcripts directory, so the port names the path and the script that prints it"
     },
     {
-      "pattern": "Typical flow: in **one** message, run two `Task` calls in parallel — `subagent_type: \"shell\"` and `subagent_type: \"explore\"` — to collect `git diff <base>...HEAD` output and full contents of changed files (default base `main`).",
+      "pattern": "Typical flow: in **one** message, run two `Task` calls in parallel \u2014 `subagent_type: \"shell\"` and `subagent_type: \"explore\"` \u2014 to collect `git diff <base>...HEAD` output and full contents of changed files (default base `main`).",
       "replacement": "Typical flow: run `git diff <base>...HEAD` (default base `main`) and read the full contents of the changed files, through the `Explore` agent when the set is large.",
       "rationale": "Claude Code has no shell or explore subagent types; the parent runs git itself and its built-in Explore agent reads bulk; must precede the `Task` rule"
     },
@@ -204,6 +204,11 @@
       "pattern": "not the cloud concurrency limit.",
       "replacement": "not the number that run at once.",
       "rationale": "Claude Code has no cloud concurrency limit"
+    },
+    {
+      "pattern": "`environment: \"cloud\"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: \"local\"` only when the worker needs access to something on the user's computer.",
+      "replacement": "`run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Claude Code subagents all run on this machine, so isolation comes from the worktree or output directory assigned in Phase A, not from a remote environment.",
+      "rationale": "the Agent tool has no environment parameter"
     },
     {
       "pattern": "`environment: \"cloud\"`, `run_in_background: true`, and the step 4 model, left unset for `auto` or `inherit-parent`. Use `environment: \"local\"` only when the worker needs access to something on the user's computer.",
