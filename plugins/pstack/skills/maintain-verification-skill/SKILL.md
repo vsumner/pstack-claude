@@ -27,7 +27,7 @@ Only edit the verification skill's own directory (its SKILL.md, features/, and a
 
 ## Pass
 
-0. **Locate the target.** Find the verification skill to maintain: the project-local skill whose body has launch/drive sections and a feature map (`.claude/skills/verify/`, or `.claude/skills/verify-*/` from an older generator). Several candidates → ask which one; none → stop and point at `/create-verification-skill` instead of inventing a target.
+0. **Locate the target.** Find the verification skill to maintain through [project skill locations](../poteto-mode/references/project-skills.md): inspect the project roots and legacy skill locations in that policy, plus any exact path the user named for a skill with launch/drive sections and a feature map. On Claude Code this includes `.claude/skills/verify/`, or `.claude/skills/verify-*/` from an older generator. On Pi and Codex start under `.agents/skills/`; do not assume a particular driver name. Preserve the selected skill's existing path and name. Several candidates → ask which one; none → stop and point at `/create-verification-skill` instead of inventing a target.
 
 1. **Index hygiene.** Read the feature map README and glob its sibling files. Fix missing, extra, duplicate, or dead entries. Lightweight; no generated inventory.
 
@@ -41,4 +41,4 @@ Only edit the verification skill's own directory (its SKILL.md, features/, and a
 
 6. **Ship or stop.** For changed: one PR of proven corrections, re-read every changed file first. For clean or blocked: no PR, report the outcome and the coverage honestly.
 
-Keep concise run notes (features covered, unreachable prerequisites, confirmed drift, outcome) in a scratch location; don't commit them.
+Keep concise run notes (exact tested source/build, relevant checker or specification revision, features covered, unreachable prerequisites, confirmed drift, outcome) in a scratch location; include relevant uncommitted changes in the source identity. Don't commit the notes.

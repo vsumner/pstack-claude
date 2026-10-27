@@ -87,12 +87,12 @@ Affected skill entry points and the optional Codex slash stubs point here. Most 
 | `no-comments` | There is no `comment-sicko` subagent type; see Subagent policy above. |
 | `thermos` | There are no thermo-nuclear subagent types; see Subagent policy above. |
 | `teach` | Running `how` and `why` in parallel maps to `spawn_agent` fan-out; image generation uses the configured Codex equivalent. |
-| `create-verification-skill` | The generated skill lands under `.claude/skills/verify/` on Claude Code; write it to Codex's project-skill location instead. The app-driving harness is platform-neutral. |
-| `maintain-verification-skill` | The parallel per-feature source readers map to `spawn_agent` fan-out; the project-local skill lives under Codex's skills location, not `.claude/skills/`. |
-| `create-formal-verification-skill` | Write the generated skill to Codex's project-skill location, named for the area it verifies. The verifier and its run command are platform-neutral. |
-| `maintain-formal-verification-skill` | Project skills, the formal verification skill among them, live under Codex's project-skill location. |
+| `create-verification-skill` | Resolve [project skill locations](project-skills.md) first. New Codex drivers default to `.agents/skills/verify/`; preserve an existing or explicitly requested name and supported path. The app-driving harness is platform-neutral. |
+| `maintain-verification-skill` | Per-feature source readers map to `spawn_agent`. Locate the actual driver and feature map through [project skill locations](project-skills.md); do not assume Claude Code's directory or a fixed driver name. |
+| `create-formal-verification-skill` | Resolve the area-named skill through [project skill locations](project-skills.md). The verifier and its run command are platform-neutral. |
+| `maintain-formal-verification-skill` | Search the active host's [project skill locations](project-skills.md) for the formal checker the user named or the code change affects, preserving its existing path. |
 | `babysit` | `loop` and `AskUserQuestion` resolve through the tables above. |
-| `automate-me` | `plugin-dev:skill-development` resolves through the skills table above. |
+| `automate-me` | Use the available skill-authoring guidance and this workspace's history only. Resolve project and personal output roots through [project skill locations](project-skills.md), preserving an existing mode skill's path and category. |
 | `architect` | The runner panel goes through the **arena** skill, so its `spawn_agent` fan-out and model substitution apply here too. |
 | `arena` | The parallel candidates and the cross-judge map to `spawn_agent`; substitute your configured Codex models for the runners and the cross-judge pool (see Model names above). |
 | `how` | The parallel explorers and the explainer map to `spawn_agent` fan-out; substitute your configured Codex models. |

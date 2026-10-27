@@ -19,7 +19,7 @@ This skill orchestrates three others: an inline mining pass (see step 1), the **
 
 ### 0. Check for an existing skill
 
-Look recursively for `.claude/skills/**/*-mode/SKILL.md` and `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.claude/skills/<handle>/`), not only at the top level. If one exists, confirm intent with `AskUserQuestion` (unless they already said "update my skill" or similar):
+Resolve `<project-skills>` and `<personal-skills>` through [project skill locations](../poteto-mode/references/project-skills.md). Look recursively in those active-host roots and the project's legacy skill directories for a mode skill matching the user's handle. Include a personal category directory such as `<project-skills>/<handle>/`, not only the top level. Do not assume Claude Code's roots on Pi or Codex. If one exists, confirm intent with `AskUserQuestion` (unless they already said "update my skill" or similar):
 
 - Update the existing skill (default for repeat runs)
 - Start fresh (rare, ask why before doing it)
@@ -71,7 +71,7 @@ The **poteto-mode** skill shows the shape. Read it for granularity. Don't copy i
 
 Use the **plugin-dev:skill-development** skill to author the skill. Placement:
 
-- Path: preserve an existing mode skill's category. For a new mode, use `.claude/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle. Otherwise default to `.claude/skills/<handle>-mode/SKILL.md` in the project (or `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/<handle>-mode/` if the user prefers a personal skill).
+- Path: preserve an existing mode skill's category. For a new mode, use `<project-skills>/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle. Otherwise default to `<project-skills>/<handle>-mode/SKILL.md` in the project (or `<personal-skills>/<handle>-mode/` if the user prefers a personal skill).
 - Handle: the user's first name or chosen identifier.
 - Frontmatter `description`: trigger on their name + `/<handle>-mode` + "work in their style", not on generic keywords like "write code" or "review PR".
 - Frontmatter formatting: follow `plugin-dev:skill-development`'s YAML rules. Keep `description` as one YAML scalar. Quote it or use `description: >-` with indented continuation lines when punctuation or wrapping requires it.

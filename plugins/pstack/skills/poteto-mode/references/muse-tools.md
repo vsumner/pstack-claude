@@ -80,10 +80,10 @@ Affected skill entry points point here. Most skills need only the tables above. 
 | `no-comments` | The `comment-sicko` dispatch resolves through `subagent_spawn` as written, with the scoped id (see Subagent policy). Run it without worktree isolation, so it sees the scope's uncommitted changes. |
 | `thermos` | Both review dispatches resolve through `subagent_spawn` with their scoped ids (see Subagent policy). |
 | `teach` | Running `how` and `why` in parallel maps to two `subagent_spawn` calls in one response. Draw with Mermaid or plain text when no image tool is available. |
-| `create-verification-skill` | Write the generated skill where Muse discovers project skills, `.agents/skills/verify/`, instead of under `.claude/skills/`. The app-driving harness is platform-neutral. |
-| `maintain-verification-skill` | The parallel per-feature source readers map to `subagent_spawn` fan-out; the project-local skill lives under `.agents/skills/`. |
-| `create-formal-verification-skill` | Write the generated skill to `.agents/skills/<area>/`, named for the area it verifies. The verifier and its run command are platform-neutral. |
-| `maintain-formal-verification-skill` | Project skills, the formal verification skill among them, live under `.agents/skills/`. |
+| `create-verification-skill` | Resolve [project skill locations](project-skills.md) first. New Muse drivers default to `.agents/skills/verify/`; preserve an existing or explicitly requested name and supported path. The app-driving harness is platform-neutral. |
+| `maintain-verification-skill` | Per-feature source readers map to `subagent_spawn`. Locate the actual driver and feature map through [project skill locations](project-skills.md); do not assume Claude Code's directory or a fixed driver name. |
+| `create-formal-verification-skill` | Resolve the area-named skill through [project skill locations](project-skills.md). The verifier and its run command are platform-neutral. |
+| `maintain-formal-verification-skill` | Search the active host's [project skill locations](project-skills.md) for the formal checker the user named or the code change affects, preserving its existing path. |
 | `babysit` | `loop` and `AskUserQuestion` resolve through the tables above. |
 | `automate-me` | The skill-authoring guidance resolves through the skills table above. The workspace's transcripts are its Muse sessions (see Tool actions), and the mode skill lands in the Muse user skills directory or `.agents/skills/`. |
 | `architect` | The runner panel goes through the **arena** skill, so its fan-out and model substitution apply here too. |

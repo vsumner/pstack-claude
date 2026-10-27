@@ -30,7 +30,7 @@ Edit only the verification: models, harnesses, property files, and the formal ve
 
 ## Pass
 
-1. **Find the checks.** A formal verification skill has no fixed name, so find it by what it does: a project skill that runs a model checker, a prover, or another verifier against named code. The project `verify` skill that `/create-verification-skill` writes drives the app and is not one. Read each one you find, or the one the user named. For each check, collect the property, the code it covers, the bounds and assumptions, the command that runs it, and the commit where it was last confirmed to describe the code. If no formal verification skill exists, stop and point at `/create-formal-verification-skill`. If the skill does not record a sync commit, use the last commit that changed the verification files, and say that you did.
+1. **Find the checks.** A formal verification skill has no fixed name, so find it by what it does: a project skill that runs a model checker, a prover, or another verifier against named code. The project `verify` skill that `/create-verification-skill` writes drives the app and is not one. Search the active host's [project skill locations](../poteto-mode/references/project-skills.md) and any exact path the user named; do not assume Claude Code's directory. Read each one you find, or the one the user named. For each check, collect the property, the code it covers, the bounds and assumptions, the command that runs it, and the commit where it was last confirmed to describe the code. If no formal verification skill exists, stop and point at `/create-formal-verification-skill`. If the skill does not record a sync commit, use the last commit that changed the verification files, and say that you did.
 
 2. **Run it as it is.** Run each check once before you change anything, and record the result. A pass here does not tell you that the code is correct. It tells you that the old description still holds. A failure here can be drift or a bug. Do not decide which until step 5.
 
@@ -54,9 +54,9 @@ Tell the user, for each check:
 
 - the outcome, and the commits that you read;
 - what changed in the verification and why, with a short reason for each change: the code changed shape, or the promise changed on purpose (with the evidence);
-- the rerun result, and the break that you used to show the updated check can still fail;
+- the rerun result, the exact tested source/build and relevant checker, model and property revisions (including relevant uncommitted changes), and the break that you used to show the updated check can still fail;
 - each bug, in plain words: the counterexample as steps in the code's words, the harm, and the commit that introduced it;
-- what the verification still does not cover, including new code that it should cover and does not.
+- the method and scope: label testing, bounded checks and model or machine-checked proofs accurately; say what is still not covered, including termination or liveness unless explicitly checked, and new code that should be covered and is not.
 
 Say outright which failures were drift in the verification and which were bugs in the code. For a check that passed before you updated it and fails after, say that the old pass was on a stale description.
 
