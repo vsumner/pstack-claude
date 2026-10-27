@@ -124,10 +124,10 @@ Affected skill entry points point here. Most skills need only the tables above. 
 | `recall` | Search Copilot session state scoped to the current workspace (Transcripts above), not `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/`. |
 | `show-me-your-work` | The end-of-run check reads this session's `events.jsonl` (Transcripts above). |
 | `automate-me` | Mode skills live in the Copilot skill locations below; transcripts come from Transcripts above; `plugin-dev:skill-development` resolves through the skills table. |
-| `create-verification-skill` | The generated skill lands under `.claude/skills/verify/` on Claude Code; on Copilot write it to `.github/skills/verify/`. The app-driving harness is platform-neutral. |
-| `maintain-verification-skill` | The parallel per-feature source readers map to `task` fan-out; the project-local skill lives under `.github/skills/`, not `.claude/skills/`. |
-| `create-formal-verification-skill` | On Copilot write the generated skill to `.github/skills/<area>/`, named for the area it verifies. The verifier and its run command are platform-neutral. |
-| `maintain-formal-verification-skill` | Project skills, the formal verification skill among them, live under `.github/skills/`. |
+| `create-verification-skill` | Resolve [project skill locations](project-skills.md) first. New Copilot drivers default to `.github/skills/verify/`; preserve an existing or explicitly requested name and supported path. The app-driving harness is platform-neutral. |
+| `maintain-verification-skill` | Per-feature source readers map to `task`. Locate the actual driver and feature map through [project skill locations](project-skills.md); do not assume Claude Code's directory or a fixed driver name. |
+| `create-formal-verification-skill` | Resolve the area-named skill through [project skill locations](project-skills.md). The verifier and its run command are platform-neutral. |
+| `maintain-formal-verification-skill` | Search the active host's [project skill locations](project-skills.md) for the formal checker the user named or the code change affects, preserving its existing path. |
 | `babysit` | `loop` and `AskUserQuestion` resolve through the tables above; in the app, `save_session_automation` is the cadence. |
 
 ## Vendored scripts

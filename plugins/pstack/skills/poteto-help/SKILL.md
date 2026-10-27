@@ -116,6 +116,8 @@ Playbooks are step lists inside `/poteto-mode`, not skills, so they have no slas
 
 Without `/poteto-mode`, a phrase such as "babysit this pr" can start pstack's standalone [`/babysit`](../babysit/SKILL.md) skill instead. The [Playbooks section](../poteto-mode/SKILL.md#playbooks) lists every playbook and when it applies. Read [Babysit](../poteto-mode/playbooks/babysit.md) or [Shipping](../poteto-mode/playbooks/shipping.md) for the port's PR workflow.
 
+For generated skills and maintenance, use [project skill locations](../poteto-mode/references/project-skills.md). The driver defaults to `verify`; preserve an existing or explicitly requested name and its supported path. Pi and Codex use `.agents/skills/` for new project skills, rather than Claude Code's `.claude/skills/`.
+
 pstack has no planning skill. Claude Code's plan mode works alongside it. For work that spans phases or stacked PRs, asking `/poteto-mode` for a plan runs the [Multi-phase plan playbook](../poteto-mode/playbooks/multi-phase-plan.md), which writes the plan and doesn't implement it. For a design question, the Prototype playbook or `/architect` settles it in code first.
 
 Principles are one-rule skills that `/poteto-mode` reads and cites in its replies. The user rarely invokes one. They steer with the names instead, as in "apply prove it works. show me the real output." On Claude Code the `principle-*` leaves are hidden from the slash menu and `/poteto-mode` reads them by path; other runtimes may list them in their skill picker. The [Principles index](../poteto-mode/SKILL.md#principles) lists them.

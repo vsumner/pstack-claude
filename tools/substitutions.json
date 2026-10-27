@@ -19,13 +19,13 @@
     {
       "pattern": "Write a project-local skill with frontmatter that names the area and says when to use it.",
       "files": "^skills/create-formal-verification-skill/SKILL\\.md$",
-      "replacement": "Write a project-local skill with frontmatter that names the area and says when to use it. Name the skill for the area, never `verify` or a `verify-` prefix, which belong to the driver skill `/create-verification-skill` writes. On Claude Code it lives at `.claude/skills/<area>/SKILL.md`.",
-      "rationale": "the port's create-verification-skill writes a project skill named verify, and older generators wrote verify-* (#71), so a formal skill must not take either name; the Codex, Copilot, and Pi mappings give their runtimes' paths, and this gives Claude Code's"
+      "replacement": "Write a project-local skill with frontmatter that names the area and says when to use it. Name the skill for the area, never `verify` or a `verify-` prefix, which belong to the driver skill `/create-verification-skill` writes. Resolve its project directory through [project skill locations](../poteto-mode/references/project-skills.md) before writing; use the active host's root and preserve an existing supported location.",
+      "rationale": "Keep the driver name reserved and place the formal skill in the active host's discovered project root, preserving Claude Code support."
     },
     {
       "pattern": "A verify skill has no fixed name, so find it by what it does: a project skill that runs a model checker, a prover, or another verifier against named code.",
       "files": "^skills/maintain-formal-verification-skill/SKILL\\.md$",
-      "replacement": "A verify skill has no fixed name, so find it by what it does: a project skill that runs a model checker, a prover, or another verifier against named code. The project `verify` skill that `/create-verification-skill` writes drives the app and is not one.",
+      "replacement": "A verify skill has no fixed name, so find it by what it does: a project skill that runs a model checker, a prover, or another verifier against named code. The project `verify` skill that `/create-verification-skill` writes drives the app and is not one. Search the active host's [project skill locations](../poteto-mode/references/project-skills.md) and any exact path the user named; do not assume Claude Code's directory.",
       "rationale": "the port's driver skill is named verify (#71), so the formal maintainer must not take it for a formal check"
     },
     {

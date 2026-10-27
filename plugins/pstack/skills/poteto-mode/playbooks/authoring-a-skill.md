@@ -2,7 +2,7 @@
 
 **You own the skill's voice.**
 
-1. Use the **plugin-dev:skill-development** skill (Claude Code's authoring guidance for SKILL.md files).
+1. Resolve the skill's path through [project skill locations](../references/project-skills.md), preserving an existing supported location. Use the current host's authoring guidance; **plugin-dev:skill-development** is Claude Code's equivalent, not a tool every host supplies.
 2. Validate the skill: frontmatter has `name` and `description`, referenced files exist, cross-skill links resolve.
 3. Test cases if structural. Skip if subjective.
 4. Run **Opening a PR**.
