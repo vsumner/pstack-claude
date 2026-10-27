@@ -2,6 +2,14 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.105 - Dependency-safe local skills and pinned operational helpers
+
+Approved local skill adaptations use a distinct native skill name and the packaged copier, retaining sibling Markdown dependencies against the exact immutable source, including nested reviewer templates. Existing local copies are maintained in place; no sibling skill tree, host registration or trust change is added.
+
+Optional Bun workflows use a pinned writable helper checkout outside discovery and retain program state separately through the existing `--store`/`ORCH_STORE`. The existing frozen bootstrap is unchanged. Orchestrate, watcher and landing guidance use that operational location rather than mutating installed snapshots. Resumption checks the exact source pin and refuses changed source or relative store paths.
+
+Regression fixtures cover local-copy dependencies and native Pi/Codex catalog selection, the two original failure controls, and an opt-in fake-forge initialization/bookkeeping/resumption round trip through the documented helper commands. These are offline integration checks, not model-compliance, worker-liveness or real shipping evidence.
+
 ## 0.9.104 - Bounded upstream alignment and accurate host guidance
 
 Partially aligns the pstack component to Cursor `519d36aa98955bf680db01bcde5fdfba686dc901` (0.15.34). Adopts replacement-PR selection, multi-backtick plan parsing, explicit prompt rewriting and swarm numbering fixes. Adapts immutable reflection destinations to each host. Existing repository-aware PR identity, shared polling deadline and portable Node worktree audit remain intact. Statechart/video tooling and their cross-links are deliberately excluded; this is not full upstream parity. The [file-level alignment record](docs/upstream-alignment.md) accounts for all 22 changed existing upstream files.

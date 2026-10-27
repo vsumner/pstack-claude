@@ -92,7 +92,7 @@ The baseline checks covered offline contracts, native metadata discovery and rou
 
 ## Optional helper prerequisites
 
-See the package-local [helper prerequisites](../plugins/pstack/skills/poteto-mode/references/helper-prerequisites.md) for Bun/Node entrypoints, lazy locked bootstrap, writable-directory requirements and data/access scope. Ordinary explicit skills and native host discovery do not require these optional helpers.
+See the package-local [helper prerequisites](../plugins/pstack/skills/poteto-mode/references/helper-prerequisites.md) for Bun/Node entrypoints, lazy locked bootstrap, writable-directory requirements and data/access scope. Ordinary explicit skills and native host discovery do not require these optional helpers. Approved operational use follows the [pinned writable helper checkout](../plugins/pstack/skills/poteto-mode/references/operational-helpers.md), with durable program state separate from it. Approved local adaptations use [dependency-preserving skill copies](../plugins/pstack/skills/poteto-mode/references/local-skill-overrides.md) and explicit distinct names.
 
 ## Roll back without overwriting later work
 

@@ -3,7 +3,7 @@
 import { expect, test } from "bun:test";
 import { execFileSync, spawn } from "node:child_process";
 import { join } from "node:path";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 
 import { isolatedEnv } from "../tools/test-suites.mjs";
@@ -79,6 +79,20 @@ function rpc(proc, version) {
   };
 }
 
+async function closeDiscovery(proc, root) {
+  if (proc) {
+    proc.stdin.end();
+    if (proc.pid && proc.exitCode === null && proc.signalCode === null) {
+      const exited = new Promise((resolve) => proc.once("exit", resolve));
+      const timer = setTimeout(() => proc.kill("SIGTERM"), 2000);
+      const force = setTimeout(() => proc.kill("SIGKILL"), 4000);
+      let deadline;
+      const unconfirmed = new Promise((_, reject) => { deadline = setTimeout(() => reject(new Error(`Discovery app-server ${proc.pid} exit unconfirmed; fixture retained at ${root}`)), 6000); });
+      try { await Promise.race([exited, unconfirmed]); } finally { clearTimeout(timer); clearTimeout(force); clearTimeout(deadline); }
+    }
+  }
+}
+
 function skill(dir, name) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "SKILL.md"), `---\nname: ${name}\ndescription: Native discovery fixture, no commands.\n---\n# Fixture\n`);
@@ -120,6 +134,16 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
     const target = join(root, "linked-source"); skill(target, "linked-driver");
     symlinkSync(target, join(project, ".agents/skills/linked-driver"), process.platform === "win32" ? "junction" : "dir");
 
+    const retained = join(root, "retained-pin");
+    cpSync(cached, retained, { recursive: true });
+    const override = join(project, ".agents/skills/reflect-local");
+    const copied = JSON.parse(execFileSync(process.execPath, [join(cached, "skills/reflect/scripts/copy-local-skill.mjs"), join(retained, "skills/reflect"), override], { env, cwd, encoding: "utf8", timeout: 10000 }));
+    expect(copied.localName).toBe("reflect-local");
+    const localBody = readFileSync(join(override, "SKILL.md"), "utf8");
+    expect(localBody).toContain(`<${join(retained, "skills/poteto-mode/references/codex-tools.md")}>`);
+    expect(readFileSync(join(override, "references/judgment-reviewer.md"), "utf8")).toContain(`<${join(retained, "skills/poteto-mode/references/project-skills.md")}>`);
+    expect(readdirSync(join(project, ".agents/skills")).filter((name) => name === "poteto-mode")).toEqual([]);
+
     proc = spawn(binary, ["app-server", "--listen", "stdio://"], { env, cwd, stdio: ["pipe", "pipe", "pipe"] });
     let stderr = "";
     proc.stderr.on("data", (chunk) => { stderr = (stderr + chunk).slice(-8192); });
@@ -138,6 +162,12 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
       expect(entry.enabled).toBe(true);
       expect(realpathSync(entry.path)).toBe(realpathSync(join(cached, "skills", entry.name.slice("pstack:".length), "SKILL.md")));
     }
+    const local = all.filter((entry) => entry.name === "reflect-local");
+    expect(local).toHaveLength(1);
+    expect(local[0].enabled).toBe(true);
+    expect(realpathSync(local[0].path)).toBe(realpathSync(join(override, "SKILL.md")));
+    expect(local[0].pluginId ?? null).toBe(null);
+    expect(all.filter((entry) => entry.name === "pstack:reflect")).toHaveLength(1);
     const names = all.map((entry) => entry.name);
     for (const name of ["root-driver", "package-driver", "user-driver", "linked-driver"]) expect(names).toContain(name);
     for (const name of ["claude-only-driver", "above-root-driver"]) expect(names).not.toContain(name);
@@ -148,19 +178,28 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
     const ownHooks = hooks.data.flatMap((entry) => entry.hooks).filter((entry) => entry.pluginId === "pstack@pstack-claude");
     expect(ownHooks.length).toBeGreaterThan(0);
     for (const hook of ownHooks) expect(hook.trustStatus).toBe("untrusted");
-    console.log(`Codex ${version}: ${own.length} plugin skills, portable/ancestor/symlink paths and duplicate-name entries; hooks untrusted. No thread or turn started.`);
+    console.log(`Codex ${version}: ${own.length} plugin skills, portable/ancestor/symlink paths and duplicate-name entries; hooks untrusted; distinct reflect-local selects the approved local path. No thread or turn started.`);
+    await closeDiscovery(proc, root); proc = undefined;
+    command("plugin", "remove", "pstack@pstack-claude", "--json");
+    expect(existsSync(cached)).toBe(false);
+    proc = spawn(binary, ["app-server", "--listen", "stdio://"], { env, cwd, stdio: ["pipe", "pipe", "pipe"] });
+    proc.stderr.on("data", (chunk) => { stderr = (stderr + chunk).slice(-8192); });
+    proc.stdin.on("error", () => {});
+    const resumed = rpc(proc, version);
+    await resumed.request("initialize", { clientInfo: { name: "pstack-retained-source-test", version: "1" } });
+    resumed.initialized();
+    const refreshed = await resumed.request("skills/list", { cwds: [cwd], forceReload: true });
+    const remaining = refreshed.data.find((entry) => entry.cwd === cwd) ?? refreshed.data[0];
+    expect(remaining.errors ?? [], stderr).toEqual([]);
+    const retainedLocal = remaining.skills.filter((entry) => entry.name === "reflect-local");
+    expect(retainedLocal).toHaveLength(1);
+    expect(realpathSync(retainedLocal[0].path)).toBe(realpathSync(join(override, "SKILL.md")));
+    expect(remaining.skills.filter((entry) => entry.pluginId === "pstack@pstack-claude")).toEqual([]);
+    expect(existsSync(join(retained, "skills/poteto-mode/references/codex-tools.md"))).toBe(true);
+    expect(existsSync(join(retained, "skills/poteto-mode/references/project-skills.md"))).toBe(true);
+    console.log(`Codex ${version}: retained local entry and dependencies survive fixture plugin/cache removal. No thread or turn started.`);
   } finally {
-    if (proc) {
-      proc.stdin.end();
-      if (proc.pid && proc.exitCode === null && proc.signalCode === null) {
-        const exited = new Promise((resolve) => proc.once("exit", resolve));
-        const timer = setTimeout(() => proc.kill("SIGTERM"), 2000);
-        const force = setTimeout(() => proc.kill("SIGKILL"), 4000);
-        let deadline;
-        const unconfirmed = new Promise((_, reject) => { deadline = setTimeout(() => reject(new Error(`Discovery app-server ${proc.pid} exit unconfirmed; fixture retained at ${root}`)), 6000); });
-        try { await Promise.race([exited, unconfirmed]); } finally { clearTimeout(timer); clearTimeout(force); clearTimeout(deadline); }
-      }
-    }
+    await closeDiscovery(proc, root);
     rmSync(root, { recursive: true, force: true });
   }
 }, 90000);

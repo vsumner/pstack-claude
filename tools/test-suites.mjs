@@ -11,6 +11,8 @@ export const SAFE_TEST_FILES = [
   "tests/codex-discovery.test.mjs",
   "tests/generate.test.mjs",
   "tests/host-compatibility.test.mjs",
+  "tests/local-skill.test.mjs",
+  "tests/operational-helpers.test.mjs",
   "tests/project-skills.test.mjs",
   "tests/readme-facts.test.mjs",
   "tests/runtime-packaging.test.mjs",

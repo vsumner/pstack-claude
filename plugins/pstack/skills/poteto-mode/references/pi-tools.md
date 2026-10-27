@@ -112,7 +112,7 @@ No skill file carries a Pi line. poteto-mode's Platform Adaptation section point
 
 ## Vendored scripts
 
-The optional helpers keep their existing entrypoints. Read [helper prerequisites](helper-prerequisites.md) before invoking them: the Bun CLIs lazily install locked runtime dependencies into their own writable scripts directory, even for `--help`. A read-only cache is not a suitable bootstrap location. Run `worktree-audit.mjs` with Node; it imports the adjacent reflect transcript walker, so retain the package layout and scope transcript access to the current authorization.
+The optional helpers keep their existing entrypoints. Read [helper prerequisites](helper-prerequisites.md) before invoking them: the Bun CLIs lazily install locked runtime dependencies into their own writable scripts directory, even for `--help`. A read-only cache is not a suitable bootstrap location. Resolve the exact writable checkout and durable program store through [operational helpers](operational-helpers.md) before invoking a Bun entrypoint. Run `worktree-audit.mjs` with Node; it imports the adjacent reflect transcript walker, so retain the package layout and scope transcript access to the current authorization.
 
 ## Instructions file
 

@@ -23,3 +23,5 @@ The verification generator defaults to `verify`. On Claude Code that name replac
 For personal mode skills, resolve `<personal-skills>` from the active host too. Claude Code uses `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/`; Pi and Codex support `~/.agents/skills/`, and Pi also supports its agent directory's `skills/`. Preserve an existing supported location. Consult the other host's mapping rather than borrowing Claude's personal directory.
 
 After writing, report the exact skill path and the host's invocation form. Pi uses `/skill:<name>`. In Codex, select the actual skill entry from the `$` picker. Claude Code uses the project skill's slash command. Check discovery with the current host when permitted; frontmatter and a directory alone do not prove successful invocation.
+
+For approved edits to a bundled skill, follow [local skill overrides](local-skill-overrides.md), preserving dependencies and using a distinct local name instead of duplicate-name precedence. Do not assume a single folder copy preserves sibling references.
