@@ -2,6 +2,16 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.106 - Evidence-led review and upstream 0.15.36 alignment
+
+Reconciles Cursor pstack through `c742dd61706fbacc1b95f1a20b7b988cf096ce6c` (0.15.36), verified as the latest pstack change on 2026-10-28, against monorepo main `0f77cd5dab1e006de02d6ad221d5620de026473a`. The two pstack commits since the previous pin are `ab1f702ce8e8b6557edb56b09f52cde8bfb83f17` and `c742dd6`. This remains selective host adaptation, not byte-for-byte upstream parity; the [file-level alignment record](docs/upstream-alignment.md) records each decision and the [kb-personal #58 feedback](https://github.com/vsumner/kb-personal/issues/58).
+
+Interrogate now requires a reproducible failure and coordinator rerun, with explicit missing reviewers and blocked evidence. It preserves saved model/effort choices, authority and generator-owned defaults; the four superseded reviewer reference files are removed. Arena honors configured alias seats and reports reduced diversity. Adapted [backnotprop's no-comments correction](https://github.com/backnotprop/pstack/commit/02b59d7f73a693d40ad2090d00789f3e3a772151) preserves unverifiable external constraints and continues accepted findings after one rejected retry without claiming an incomplete pass is clean.
+
+Upstream's removal of orch assumes Cursor Project storage and events. Retain `skills/poteto-mode/scripts/orch/orch.ts`, `orch/store.ts` and `orch/orch.test.ts` as port-only files, with their writable pinned-helper path, durable state, ownership, recovery and revision-bound verification. Native host agents, tracking and subscriptions take precedence where they offer equivalent behavior; no second lifecycle manager is added. Reflection dependency preservation and helper bootstrap remain unchanged. Existing merge/topology safeguards, model choices, routing-off preferences and action authority are retained. Statechart, video and Benny automation remain excluded. No Companion dependency or implementation changes.
+
+The Pi CI matrix adds current stable 1.4.0 beside 1.1.0 compatibility, with per-version publication cutoffs and offline scheduler/discovery coverage. This changes no installed CLI or user settings. Validation distinguishes instruction probes, native discovery, fake-forge helper resumption and mock scheduler behavior from live provider or unattended-program evidence.
+
 ## 0.9.105 - Dependency-safe local skills and pinned operational helpers
 
 Approved local skill adaptations use a distinct native skill name and the packaged copier, retaining sibling Markdown dependencies against the exact immutable source, including nested reviewer templates. Existing local copies are maintained in place; no sibling skill tree, host registration or trust change is added.

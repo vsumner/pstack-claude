@@ -15,7 +15,7 @@ Find each skill's instructions in the [skills tree](../plugins/pstack/skills/).
 | `/why` | investigate why something was built this way (parallel multi-MCP evidence) |
 | `/architect` | settle types and module shape before writing code that crosses a function boundary |
 | `/arena` | run N parallel attempts at the same task and pick the best parts |
-| `/interrogate` | have three different models try to break a diff |
+| `/interrogate` | have configured reviewers try to break a diff with reproducible evidence |
 | `/automate-me` | draft your own personal -mode skill from recent transcripts |
 | `/reflect` | capture a long task's lessons as a skill edit |
 | `/correct` | find the mistakes agents keep repeating in a repo and make each one impossible, enforced at the highest level that works |
@@ -239,7 +239,7 @@ CI also checks shell scripts, workflows, Markdown, relative links, and the bundl
 
 ### Port scope and attribution
 
-The skill tree is synced against upstream `519d36a` (v0.15.34, with explicit exclusions and policy adaptations). The thermos skills and agents are synced against `118e73b` (thermos 1.0.0).
+The skill tree is synced against upstream `c742dd6` (v0.15.36, with explicit exclusions and policy adaptations). The thermos skills and agents are synced against `118e73b` (thermos 1.0.0).
 
 This repository ports Lauren Tan's pstack from Cursor to Claude Code and shares the skills with other runtimes. It includes six cursor-team-kit skills, the three thermos skills with their two review subagents, and an independently authored `babysit` skill. The port supplies Claude Code plugin registration and routing, Codex manifests and shortcuts, the Codex tool mapping, the Pi package, extension, and tool mapping, the GitHub Copilot hooks and tool mapping, and the Muse native plugin, routing hook, and tool mapping.
 

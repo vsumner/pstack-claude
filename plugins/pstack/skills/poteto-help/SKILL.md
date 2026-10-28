@@ -111,7 +111,7 @@ Playbooks are step lists inside `/poteto-mode`, not skills, so they have no slas
 - "land the stack" runs Shipping.
 - "take over this branch" runs Session pickup.
 - "pause safely" runs Pause safely.
-- "full autopilot on this queue" runs [Autopilot-full](../poteto-mode/playbooks/autopilot-full.md). "stack them, don't ship" runs [Autopilot-stack](../poteto-mode/playbooks/autopilot-stack.md). Read the selected playbook's merge rules before explaining what runs unattended.
+- "full autopilot on this queue" runs [Autopilot-full](../poteto-mode/playbooks/autopilot-full.md). "autopilot, don't merge" or "stack them, don't ship" runs [Autopilot-stack](../poteto-mode/playbooks/autopilot-stack.md). Read the selected playbook's merge rules before explaining what runs unattended.
 - "run the eval playbook" runs Eval.
 
 Without `/poteto-mode`, a phrase such as "babysit this pr" can start pstack's standalone [`/babysit`](../babysit/SKILL.md) skill instead. The [Playbooks section](../poteto-mode/SKILL.md#playbooks) lists every playbook and when it applies. Read [Babysit](../poteto-mode/playbooks/babysit.md) or [Shipping](../poteto-mode/playbooks/shipping.md) for the port's PR workflow.

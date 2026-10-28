@@ -134,8 +134,16 @@ jobs:
         run: diff -qr plugins/pstack/skills .agents/skills
 
   pi-types:
-    name: Pi extension types
+    name: Pi extension types (${{ matrix.pi-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pi-version: "1.1.0"
+            before: "2026-10-11"
+          - pi-version: "1.4.0"
+            before: "2026-10-22"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -152,14 +160,14 @@ jobs:
       # secrets. A lockfile here would put Pi's whole dependency tree under
       # this repository's dependency scans.
       - name: Install Pi
-        run: npm install -g --ignore-scripts --before=2026-10-11 @earendil-works/pi-coding-agent@1.1.0 # zizmor: ignore[adhoc-packages]
+        run: npm install -g --ignore-scripts --before=${{ matrix.before }} @earendil-works/pi-coding-agent@${{ matrix.pi-version }} # zizmor: ignore[adhoc-packages]
       - name: Typecheck the extension against Pi
         run: bun tools/typecheck-pi.mjs
       - name: Install test dependencies
         run: bun install --frozen-lockfile
       # These checks make no model calls. Missing Pi fails instead of skipping.
       - name: Check the model catalog and child startup against Pi
-        run: bun test tests/pi/catalog.test.mjs tests/pi/runtime.test.mjs
+        run: bun test tests/pi/catalog.test.mjs tests/pi/runtime.test.mjs tests/pi/interaction.test.mjs tests/project-skills.test.mjs tests/local-skill.test.mjs
         env:
           PSTACK_PI_REQUIRE_CATALOG: "1"
           PSTACK_PI_REQUIRE_RUNTIME: "1"

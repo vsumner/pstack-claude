@@ -595,6 +595,18 @@
       "pattern": "a `/visualize` chart for numbers",
       "replacement": "a chart rendered from the data for numbers",
       "rationale": "/visualize is a Cursor command with no Claude Code equivalent"
+    },
+    {
+      "regex": "With the default pool, a Claude parent gets `[^`]+`\\. A parent from any other family gets `[^`]+` first\\.",
+      "files": "^skills/arena/SKILL\\.md$",
+      "replacement": "With the default pool, try its entries from another model family in order.",
+      "rationale": "The updated arena cross-judge example names Cursor-only model IDs; retain the family-selection meaning without overriding the stamped role defaults."
+    },
+    {
+      "regex": "- \\*\\*A fresh worker for each independent task\\.\\*\\*[^\\n]+",
+      "files": "^skills/poteto-mode/playbooks/orchestrate\\.md$",
+      "replacement": "- **A fresh worker for each independent task.** Its kickoff carries everything it needs, including upstream reports. Use the active host's native agents and an exclusive worktree per writer. Runtime checks use the resolved driver skill. Keep model and effort choices from the host mapping.",
+      "rationale": "The updated upstream orchestration bullet assumes Cursor cloud VMs and control-ui/control-cli; the port resolves native workers, writer isolation and runtime drivers through the active host."
     }
   ],
   "denylist": [
