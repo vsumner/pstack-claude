@@ -10,7 +10,7 @@ Interrogate now requires a reproducible failure and coordinator rerun, with expl
 
 Upstream's removal of orch assumes Cursor Project storage and events. Retain `skills/poteto-mode/scripts/orch/orch.ts`, `orch/store.ts` and `orch/orch.test.ts` as port-only files, with their writable pinned-helper path, durable state, ownership, recovery and revision-bound verification. Native host agents, tracking and subscriptions take precedence where they offer equivalent behavior; no second lifecycle manager is added. Reflection dependency preservation and helper bootstrap remain unchanged. Existing merge/topology safeguards, model choices, routing-off preferences and action authority are retained. Statechart, video and Benny automation remain excluded. No Companion dependency or implementation changes.
 
-The Pi CI matrix adds current stable 1.4.0 beside 1.1.0 compatibility, with per-version publication cutoffs and offline scheduler/discovery coverage. This changes no installed CLI or user settings. Validation distinguishes instruction probes, native discovery, fake-forge helper resumption and mock scheduler behavior from live provider or unattended-program evidence.
+The Pi CI matrix adds current stable 1.4.0 beside 1.1.0 compatibility, with per-version publication cutoffs and offline scheduler/discovery coverage. Full CI also restores Muse's project-path translation pointer to the shared skill-location policy. This changes no installed CLI or user settings. Validation distinguishes instruction probes, native discovery, fake-forge helper resumption and mock scheduler behavior from live provider or unattended-program evidence.
 
 ## 0.9.105 - Dependency-safe local skills and pinned operational helpers
 
