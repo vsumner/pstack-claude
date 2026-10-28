@@ -1,6 +1,6 @@
 ---
 name: interrogate
-description: "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Multiple LLM reviewers challenge changes from independent angles."
+description: "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Adversaries try to break a change or design, and only findings proven by a run survive."
 ---
 
 # Interrogate
@@ -11,25 +11,15 @@ On GitHub Copilot, read the [platform mapping](../poteto-mode/references/copilot
 
 On Muse, read the [platform mapping](../poteto-mode/references/muse-tools.md), including its per-skill notes, before following this skill.
 
-Spawn one reviewer per configured model to adversarially review code changes. The adversarial signal comes from model diversity, not assigned personas. The deliverable is a synthesized verdict. Do NOT auto-apply changes.
+Adversaries try to break a change or a design. A finding survives only when a run proves it. Report the findings. Do not apply fixes.
 
-## Step 1, Scope
+## Frame
 
-Identify what to review from context:
+Use the scope the user names. Otherwise review the branch from its merge base with the base branch through the working tree, including scoped uncommitted and untracked files. State the intent in your own words from the user's message, commits and PR description. Ask only when a material intent decision remains unclear after reading those sources.
 
-- If the user points at specific files or a diff, use that.
-- If on a feature branch, run `git diff main...HEAD` (or the appropriate base branch) for the full changeset.
-- If the user's message references recent work, gather the relevant files.
+## Fan out
 
-Package the diff or file contents with any surrounding context files the reviewers need to understand the code.
-
-## Step 2, Intent
-
-Before spawning reviewers, state the intent in one clear paragraph from the user's message, commit messages, the PR description if one exists, and the code. If you're unsure about the intent, ask the user before proceeding.
-
-## Step 3, Spawn Reviewers
-
-Launch all reviewers in a single message with the `Agent` tool, one per entry on the `interrogate reviewers` line in `pstack-models.md`, labeled Reviewer A, B, and so on to match the entry count. If the sheet or that line is missing, use the table defaults.
+Read the `interrogate reviewers` line in the active host's `pstack-models.md`. Spawn one reviewer per entry, including `auto` and `inherit-parent`. If the line is absent, use the table defaults through the host mapping. Honor saved model and effort choices; aliases omit the model override. If an entry cannot run, report the missing reviewer and follow the host mapping's capability and review-gate rules. Do not silently change providers or replace a saved choice to manufacture diversity. Report reduced model diversity when entries inherit the same model.
 
 | Subagent | Default model |
 |----------|---------------|
@@ -38,47 +28,25 @@ Launch all reviewers in a single message with the `Agent` tool, one per entry on
 | Reviewer C | `sonnet` |
 | Reviewer D | `haiku` |
 
-Each reviewer gets `subagent_type: "general-purpose"`, `readonly: true`, and `model` set to its configured entry, or its table default when there is no configured line. Omit `model` for an `auto` or `inherit-parent` entry, so that reviewer runs on the parent model.
+Use the native agent tools exposed by the host. On Claude Code the reviewer type is `general-purpose`. Give each reviewer its own worktree or scratch output, with the scoped uncommitted changes copied into its snapshot. Reviewers may create repros there, but must not edit the author's tree. A worktree or brief does not restrict inherited permissions. Every probe stays within the user's existing resource, action and spending authority; a review is no grant for provider calls, publication or external mutation.
 
-If the `Agent` tool rejects a configured entry, run that reviewer on its family's table default and say so. Families go by model name, such as Opus, Fable, or Sonnet. With no family match, use Reviewer A's default. If it rejects a table default, spawn with the closest equivalent from the valid slugs in its error message (prefer the same family and reasoning tier), and open a separate PR to update the default table. Do not block the review on the slug issue. Never treat an alias entry as a rejected slug or apply either fallback to it.
+Give every reviewer the scope, intent, source snapshot and this brief:
 
-Read `references/reviewer-prompt.md` and fill in the same template for every reviewer with the stated intent, the diff or file contents, the rubric from `references/rubric.md`, and the code-quality lens from `references/code-quality-review.md`. Pick each subagent's reasoning level for the job, per the Subagents section of the **poteto-mode** skill.
+> Break this change. Prove each finding with a run against the real code, such as a failing test, repro script, or command showing wrong behavior. For a design, plan or instruction change, run a bounded prototype or workflow probe against the relevant artifacts and label what that probe establishes. Keep repros in your own workspace. Report the title, source location, exact command, observed output, expected output and how the mismatch breaks the intent. Leave out style preferences, speculative future failures and anything you did not check. No findings is valid. Report blocked checks separately, with the exact action, target and reason; a blocked check is not a pass.
 
-## Step 4, Synthesize
+## Verify
 
-As results come back, build a unified picture. Parse every reviewer's findings. Merge findings that describe the same issue differently, and note which models raised each one. Findings two or more models raised independently are the highest signal. Read a lone model's finding, but weight it accordingly. Note disagreements. If one model flags something and another explicitly says the opposite, that is context for the verdict.
+Rerun each reported finding's command against the same scoped source snapshot. Preserve its raw evidence. Keep it when the output demonstrates a failure of the stated intent; drop it when the run does not reproduce or the behavior is outside scope. Merge findings with the same root cause. Model agreement is context, not a substitute for reproduction.
 
-## Step 5, Lead Judgment
+If a relevant check cannot run within the current authority, report it as blocked and continue independent checks. Keep any required independent-review gate closed until its missing evidence is resolved, per [poteto-mode's review gate](../poteto-mode/SKILL.md#subagents). An instruction or metadata probe does not establish live model compliance, process lifecycle, or production behavior.
 
-You are the lead reviewer, a pragmatic senior engineer, not a neutral aggregator. Read `references/lead-judgment.md` for the full framework. Put every finding in one of four buckets, with the model(s) that raised it and a one-line rationale.
+## Output
 
-- **Act on**. Real issues affecting correctness, security, or maintainability given the actual goals. They would block a real PR.
-- **Consider**. Legitimate, but you're not sure they outweigh the cost of addressing them now. Worth the user's attention.
-- **Noted**. Technically valid but not actionable. Context-dependent, premature optimization, or low-impact at this stage.
-- **Dismissed**. Wrong, nitpicky, or missing context, with a brief reason.
-
-## Output Format
-
-### Intent
-> [The stated intent paragraph from Step 2]
-
-### Reviewers
-- Reviewer [label]: [model name], [N findings] (one bullet per reviewer)
-
-### Act On
-[Each: description, which models raised it, why it matters.]
-
-### Consider
-[Each: description, which models raised it, the tradeoff.]
-
-### Noted
-[Brief list.]
-
-### Dismissed
-[Each with a brief rationale.]
-
-### Agreement Map
-[Where models agreed and diverged, and what that pattern tells us.]
+- **Intent:** the restatement and reviewed snapshot.
+- **Reviewers:** which entries ran, any missing seats and reduced diversity.
+- **Findings:** each verified failure, its command, observed and expected output, and the reviewers who found it. Say "no verified findings" when none survive.
+- **Dropped:** counts by reviewer and reasons.
+- **Blocked:** unresolved checks and their effect on the review gate. Do not present missing required evidence as a clean verdict.
 
 ## Reasoning effort
 

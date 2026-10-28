@@ -67,6 +67,7 @@ The [driver policy](../SKILL.md#non-negotiables) selects the app driver. For ski
 | `run` (drive a CLI/TUI to see a change work) | Run the app yourself via `bash` and observe the real output. |
 | Project UI driver | Drive the UI with whatever automation you have, or hand the user a concrete manual check. Do not claim done without observing the artifact. |
 | `plugin-dev:skill-development` (Claude's SKILL.md authoring guidance) | Follow Muse's bundled skill-authoring guidance and the Agent Skills shape. Keep `name` plus `description` frontmatter and progressive disclosure. |
+| `.claude/skills/` (project skill paths) | Resolve [project skill locations](project-skills.md). New Muse project skills use `.agents/skills/`; preserve an existing or explicitly requested name and location. |
 | `loop` (recurring/self-paced re-invocation, used by `babysit`) | `cron_create` on a cadence, or `monitor` on the PR or job. Re-run the step yourself when neither fits. |
 
 ## Per-skill notes

@@ -30,7 +30,7 @@ If a candidate produces no output, proceed with N-1 and note the dropout.
 
 ## Phase C: Cross-judge
 
-After all Phase B candidates complete, choose one model from the `arena cross-judge pool` line in `pstack-models.md`. If the sheet or that line is missing, choose from the runner defaults in [Models](#models). Prefer a different model family from the parent's. Spawn one readonly judge subagent on that model. It sees the rubric and the candidates by path label, scores each criterion, and recommends a base with rationale. It runs in parallel with your reading in Phase D. Don't spawn it while candidates are still writing.
+After all Phase B candidates complete, choose one model from the `arena cross-judge pool` line in `pstack-models.md`. If the sheet or that line is missing, choose from the runner defaults in [Models](#models). Prefer a different model family from the parent's. Spawn one readonly judge subagent on that model. It sees the rubric and the candidates by path label, scores each criterion, and recommends a base with rationale. It runs in parallel with your reading in Phase D. Don't spawn it while candidates are still writing. Try the saved pool in preference order and honor explicit aliases and effort choices. If those choices provide no other family, report reduced diversity rather than replacing them. A rejected entry does not authorize a provider switch; apply the active host's model and review-gate rules.
 
 ## Phase D: Pick a base
 

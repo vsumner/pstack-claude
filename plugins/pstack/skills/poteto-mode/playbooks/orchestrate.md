@@ -4,6 +4,8 @@ Resolve the driver skill through [poteto-mode's Non-negotiables](../SKILL.md#non
 
 **You own the program, never the code. Author briefs, drain the queue, keep the frontier green, decide.** For a whole project handed to one standing coordinator chat: multi-day, many stacked PRs, dozens to hundreds of subagents, the human checking in twice a day instead of every five minutes. One task driven to a predicate is Autonomous run. One ambitious run needing a bespoke workflow is figure-it-out. Route here when the work outlives any single agent. Work one agent could finish inside the session's budget is not a program.
 
+Use the active host's native agents, task tracking and event subscriptions when available. Keep durable program state and revision-bound verdicts through the helpers below until a native replacement demonstrates equivalent recovery and ownership checks. The helpers only record state; they never schedule or supervise agents. A wake-up is a continuation mechanism, not a guarantee that an unattended program will finish.
+
 Ceremony must scale with the program. On cheap near-identical units, collapse it as each section directs.
 
 Three rules carry the rest.
