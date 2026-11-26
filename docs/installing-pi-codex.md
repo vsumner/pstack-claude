@@ -1,6 +1,6 @@
 # Pinned Pi and Codex setup
 
-These instructions target the `vsumner/pstack-claude` fork. The historical reviewed installation baseline is **0.9.103**, commit **c6c138bd0e3e010f18ba5fd3c43c94e402d1b164**, checked offline with **Pi 1.4.0** and **Codex CLI 0.163.0**. The 0.9.104 alignment release has its own PR evidence; choose its exact reviewed commit when installing it. Later source or host versions need their own checks. The upstream project and Claude Code installation remain available in the [README](../README.md).
+These instructions target the `vsumner/pstack-claude` fork. The historical reviewed installation baseline is **0.9.103**, commit **c6c138bd0e3e010f18ba5fd3c43c94e402d1b164**, checked offline with **Pi 1.4.0** and **Codex CLI 0.163.0**. The 0.9.104 alignment release has its own PR evidence; choose its exact reviewed commit when installing it. The 0.9.158 alignment makes Pi 1.5.1 the oldest supported Pi; install it by its reviewed commit as well. Later source or host versions need their own checks. The upstream project and Claude Code installation remain available in the [README](../README.md).
 
 ## Inspect and back up first
 

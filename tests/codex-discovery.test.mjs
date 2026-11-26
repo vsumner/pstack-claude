@@ -136,12 +136,12 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
 
     const retained = join(root, "retained-pin");
     cpSync(cached, retained, { recursive: true });
-    const override = join(project, ".agents/skills/reflect-local");
-    const copied = JSON.parse(execFileSync(process.execPath, [join(cached, "skills/reflect/scripts/copy-local-skill.mjs"), join(retained, "skills/reflect"), override], { env, cwd, encoding: "utf8", timeout: 10000 }));
-    expect(copied.localName).toBe("reflect-local");
-    const localBody = readFileSync(join(override, "SKILL.md"), "utf8");
-    expect(localBody).toContain(`<${join(retained, "skills/poteto-mode/references/codex-tools.md")}>`);
-    expect(readFileSync(join(override, "references/judgment-reviewer.md"), "utf8")).toContain(`<${join(retained, "skills/poteto-mode/references/project-skills.md")}>`);
+    const override = join(project, ".agents/skills/setup-pstack-local");
+    const copied = JSON.parse(execFileSync(process.execPath, [join(cached, "skills/reflect/scripts/copy-local-skill.mjs"), join(retained, "skills/setup-pstack"), override], { env, cwd, encoding: "utf8", timeout: 10000 }));
+    expect(copied.localName).toBe("setup-pstack-local");
+    const localBody = readFileSync(join(override, "references/runtimes.md"), "utf8");
+    expect(localBody).toContain(`<${join(retained, "skills/poteto-mode/references/codex-tools.md")}#model-names>`);
+    expect(localBody).toContain(`<${join(retained, "skills/poteto-mode/references/pi-tools.md")}#model-names>`);
     expect(readdirSync(join(project, ".agents/skills")).filter((name) => name === "poteto-mode")).toEqual([]);
 
     proc = spawn(binary, ["app-server", "--listen", "stdio://"], { env, cwd, stdio: ["pipe", "pipe", "pipe"] });
@@ -162,7 +162,7 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
       expect(entry.enabled).toBe(true);
       expect(realpathSync(entry.path)).toBe(realpathSync(join(cached, "skills", entry.name.slice("pstack:".length), "SKILL.md")));
     }
-    const local = all.filter((entry) => entry.name === "reflect-local");
+    const local = all.filter((entry) => entry.name === "setup-pstack-local");
     expect(local).toHaveLength(1);
     expect(local[0].enabled).toBe(true);
     expect(realpathSync(local[0].path)).toBe(realpathSync(join(override, "SKILL.md")));
@@ -178,7 +178,7 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
     const ownHooks = hooks.data.flatMap((entry) => entry.hooks).filter((entry) => entry.pluginId === "pstack@pstack-claude");
     expect(ownHooks.length).toBeGreaterThan(0);
     for (const hook of ownHooks) expect(hook.trustStatus).toBe("untrusted");
-    console.log(`Codex ${version}: ${own.length} plugin skills, portable/ancestor/symlink paths and duplicate-name entries; hooks untrusted; distinct reflect-local selects the approved local path. No thread or turn started.`);
+    console.log(`Codex ${version}: ${own.length} plugin skills, portable/ancestor/symlink paths and duplicate-name entries; hooks untrusted; distinct setup-pstack-local selects the approved local path. No thread or turn started.`);
     await closeDiscovery(proc, root); proc = undefined;
     command("plugin", "remove", "pstack@pstack-claude", "--json");
     expect(existsSync(cached)).toBe(false);
@@ -191,7 +191,7 @@ test.skipIf(!binary && !required)("installed Codex discovers this checkout and p
     const refreshed = await resumed.request("skills/list", { cwds: [cwd], forceReload: true });
     const remaining = refreshed.data.find((entry) => entry.cwd === cwd) ?? refreshed.data[0];
     expect(remaining.errors ?? [], stderr).toEqual([]);
-    const retainedLocal = remaining.skills.filter((entry) => entry.name === "reflect-local");
+    const retainedLocal = remaining.skills.filter((entry) => entry.name === "setup-pstack-local");
     expect(retainedLocal).toHaveLength(1);
     expect(realpathSync(retainedLocal[0].path)).toBe(realpathSync(join(override, "SKILL.md")));
     expect(remaining.skills.filter((entry) => entry.pluginId === "pstack@pstack-claude")).toEqual([]);

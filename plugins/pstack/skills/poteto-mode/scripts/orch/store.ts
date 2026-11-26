@@ -595,11 +595,7 @@ function unitCells(unit: Unit): readonly string[] {
 }
 
 async function saveUnits(store: string, rows: readonly Unit[]): Promise<void> {
-  await writeTsv(
-    join(store, "units.tsv"),
-    UNIT_HEADER,
-    rows.map(unitCells)
-  );
+  await writeTsv(join(store, "units.tsv"), UNIT_HEADER, rows.map(unitCells));
 }
 
 async function readLedger(store: string): Promise<readonly LedgerEntry[]> {
@@ -623,14 +619,7 @@ async function readLedger(store: string): Promise<readonly LedgerEntry[]> {
 }
 
 function ledgerCells(row: LedgerEntry): readonly string[] {
-  return [
-    row.pr,
-    row.sha,
-    row.verdict,
-    row.evidence,
-    row.verifier,
-    row.ts,
-  ];
+  return [row.pr, row.sha, row.verdict, row.evidence, row.verifier, row.ts];
 }
 
 async function saveLedger(
@@ -697,8 +686,7 @@ function renderGates(rows: readonly Gate[]): string {
     return "";
   }
   const blocks = rows.map((gate) => {
-    const answer =
-      gate.kind === "resolved" ? `\n- Answer: ${gate.answer}` : "";
+    const answer = gate.kind === "resolved" ? `\n- Answer: ${gate.answer}` : "";
     return `## ${gate.id}
 
 - Status: ${gate.kind}
@@ -793,9 +781,7 @@ function parseFrontier(raw: string): Frontier {
   }
   const prs: FrontierPr[] = [];
   for (const row of value.prs) {
-    const state = isRecord(row)
-      ? frontierPrStateOrNull(row.state)
-      : null;
+    const state = isRecord(row) ? frontierPrStateOrNull(row.state) : null;
     if (
       !isRecord(row) ||
       typeof row.pr !== "number" ||
@@ -826,9 +812,7 @@ async function readFrontier(store: string): Promise<Frontier> {
   return parseFrontier(await requiredFile(join(store, "frontier.json")));
 }
 
-async function readStanding(
-  store: string
-): Promise<readonly StandingLine[]> {
+async function readStanding(store: string): Promise<readonly StandingLine[]> {
   const raw = (await requiredFile(join(store, "preferences.md"))).replace(
     /\r/g,
     ""
@@ -854,9 +838,7 @@ function countValues(values: readonly string[]): Counts {
     result[value] = (result[value] ?? 0) + 1;
   }
   return Object.fromEntries(
-    Object.entries(result).sort(([left], [right]) =>
-      left.localeCompare(right)
-    )
+    Object.entries(result).sort(([left], [right]) => left.localeCompare(right))
   );
 }
 
@@ -980,7 +962,10 @@ function changed(before: StatusSummary | null, after: StatusSummary): string {
 }
 
 function markdown(value: string): string {
-  return value.replace(/[\t\n\r]/g, " ").replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+  return value
+    .replace(/[\t\n\r]/g, " ")
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|");
 }
 
 function table(
@@ -1356,13 +1341,7 @@ function runGit({
   return runTool({ command: "git", args, repo }).trim();
 }
 
-function branchSha({
-  branch,
-  repo,
-}: {
-  branch: string;
-  repo: string;
-}): string {
+function branchSha({ branch, repo }: { branch: string; repo: string }): string {
   const sha = runGit({
     args: ["rev-parse", "--verify", `refs/heads/${branch}^{commit}`],
     repo,
@@ -1414,7 +1393,9 @@ function pushRepository({
   const owner = match?.[1];
   const name = match?.[2];
   if (owner === undefined || name === undefined) {
-    throw new UserError(`remote ${remote} URL ${url} does not name a repository`);
+    throw new UserError(
+      `remote ${remote} URL ${url} does not name a repository`
+    );
   }
   return `${owner}/${name}`.toLowerCase();
 }
@@ -1672,9 +1653,7 @@ export function openStore(
       },
       counts: async () => {
         ensureOpen();
-        return countValues(
-          (await readUnits(store)).map((unit) => unit.state)
-        );
+        return countValues((await readUnits(store)).map((unit) => unit.state));
       },
     },
     ledger: {
@@ -1721,9 +1700,7 @@ export function openStore(
       },
       summary: async () => {
         ensureOpen();
-        return countValues(
-          (await readLedger(store)).map((row) => row.verdict)
-        );
+        return countValues((await readLedger(store)).map((row) => row.verdict));
       },
     },
     inbox: {
@@ -1786,10 +1763,7 @@ export function openStore(
           id: requiredLine(params.id, "gate id"),
           question: requiredLine(params.question, "question"),
           options: requiredLine(params.options, "options"),
-          defaultAnswer: requiredLine(
-            params.defaultAnswer,
-            "default"
-          ),
+          defaultAnswer: requiredLine(params.defaultAnswer, "default"),
         };
         const rows = [...(await readGates(store))];
         const index = rows.findIndex((old) => old.id === gate.id);

@@ -6,7 +6,9 @@
 // The aliases resolve through the shipped models.json table of
 // PSTACK_PI_LIVE_PROVIDER (default openai), or through the `pi models:`
 // line in PSTACK_PI_LIVE_MODELS when it is set. The parent runs on the sonnet
-// alias. PSTACK_PI_LIVE_KEEP=1 keeps the throwaway directory for inspection.
+// alias's table model. The panel test expects each agent on the model the extension's own
+// resolver picks, which on openai can be the codex tier model instead.
+// PSTACK_PI_LIVE_KEEP=1 keeps the throwaway directory for inspection.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
@@ -16,7 +18,7 @@ import { fileURLToPath } from "node:url";
 
 import { openingPrompt } from "../../plugins/pstack/skills/reflect/scripts/find-transcript.mjs";
 import { agentBody, alive as pidAlive, gitRepo, pluginRoot, readEntries, sleep } from "./harness.mjs";
-import { agentByDescription, assistantModels, childEntries, descendants, findSessionFile, jsonLines, liveModels, MINUTE, PiRpc, processTable, sections, textOf } from "./live-harness.mjs";
+import { agentByDescription, agentModels, assistantModels, childEntries, descendants, findSessionFile, jsonLines, liveModels, MINUTE, PiRpc, processTable, sections, textOf } from "./live-harness.mjs";
 
 const LIVE = process.env.PSTACK_PI_LIVE === "1";
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -90,6 +92,9 @@ suite("pstack on live pi", () => {
   test(
     "panel: three background agents on opus, fable, and sonnet each notify, on their own resolved model",
     async () => {
+      const models = agentModels(pluginRoot, SHEET, PARENT_MODEL, env, ["opus", "fable", "sonnet"]);
+      // An agent that ignored its model would run on the parent's, so one alias must resolve elsewhere.
+      expect([...models.values()].some((model) => model !== PARENT_MODEL)).toBe(true);
       await withParent(async (parent) => {
         const from = await parent.run(
           [
@@ -107,23 +112,22 @@ suite("pstack on live pi", () => {
         const expected = { "panel-opus": ["opus", "alpha"], "panel-fable": ["fable", "beta"], "panel-sonnet": ["sonnet", "gamma"] };
         const notices = parent.notices(from);
         expect(notices).toHaveLength(3);
-        const seen = new Set();
+        // Each agent's own model is checked; a provider's table may map two
+        // aliases to one model, as openai does for opus and sonnet.
         for (const [description, [alias, word]] of Object.entries(expected)) {
           const snaps = agentByDescription(file, description);
           const last = snaps.at(-1);
-          expect(last).toMatchObject({ status: "completed", agent: { model: MODELS.get(alias) } });
+          expect(last).toMatchObject({ status: "completed", agent: { model: models.get(alias) } });
           expect(pidAlive(last.pid)).toBe(false);
           const notice = notices.find((n) => n.details.agentId === last.agent.id);
           expect(notice.details.status).toBe("completed");
           expect(textOf(notice).toLowerCase()).toContain(word);
           const child = childEntries(last);
-          expect([...assistantModels(child)]).toEqual([MODELS.get(alias)]);
+          expect([...assistantModels(child)]).toEqual([models.get(alias)]);
           const childSections = sections(child);
           expect(childSections[SHEET_KEY]).toBe(tagged(SHEET_KEY, SHEET));
           expect(childSections[MANDATE_KEY]).toBeUndefined();
-          seen.add(MODELS.get(alias));
         }
-        expect(seen.size).toBe(3);
       });
     },
     8 * MINUTE,
@@ -301,7 +305,7 @@ suite("pstack on live pi", () => {
   );
 
   test(
-    "wake: schedule_wakeup re-invokes the parent with the stored prompt after 60 s",
+    "wake: schedule_wakeup re-invokes the parent with the stored prompt after 60 s, as a custom message, not a user message",
     async () => {
       await withParent(async (parent) => {
         const wakePrompt = "WAKE-PING: reply with exactly one word: pong";
@@ -311,7 +315,7 @@ suite("pstack on live pi", () => {
         const [scheduled] = parent.toolResults("schedule_wakeup", from);
         expect(scheduled.details.delaySeconds).toBe(60);
         const fired = await parent.until(
-          () => parent.messages(from).find((m) => m.role === "user" && textOf(m) === wakePrompt),
+          () => parent.messages(from).find((m) => m.role === "custom" && m.customType === "pstack-wakeup" && textOf(m) === wakePrompt),
           2 * MINUTE,
           "the wakeup prompt",
         );

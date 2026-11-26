@@ -14,7 +14,7 @@ import { writeSheet } from "../session-hook-sheets.mjs";
 export const pluginRoot = fileURLToPath(new URL("../../plugins/pstack/", import.meta.url));
 const fakePiBin = fileURLToPath(new URL("./fake-pi.mjs", import.meta.url));
 
-const fixtureModels = {
+export const fixtureModels = {
   available: ["opus", "fable", "sonnet", "haiku"],
   efforts: ["low", "medium", "high", "xhigh", "max"],
   pi: {
@@ -43,10 +43,12 @@ export function fakePi() {
   const messages = [];
   const userMessages = [];
   const entries = [];
+  // Skills and prompt templates pi lists beside the extension commands: { name, source, sourceInfo: { path, baseDir } }.
+  const slashCommands = [];
   const api = {
     registerTool: (tool) => tools.set(tool.name, tool),
     registerCommand: (name, options) => commands.set(name, options),
-    getCommands: () => [...commands.keys()].map((name) => ({ name, source: "extension" })),
+    getCommands: () => [...commands.keys()].map((name) => ({ name, source: "extension" })).concat(slashCommands),
     on(event, handler) {
       handlers.set(event, [...(handlers.get(event) ?? []), handler]);
       return () => {};
@@ -63,6 +65,7 @@ export function fakePi() {
     commands,
     messages,
     userMessages,
+    slashCommands,
     entries,
     async emit(event, payload, ctx) {
       const results = [];
@@ -225,5 +228,19 @@ export function alive(pid) {
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Runs fn with env's variables set, then puts back what was there, unset ones included.
+export async function withEnv(env, fn) {
+  const saved = Object.fromEntries(Object.keys(env).map((name) => [name, process.env[name]]));
+  Object.assign(process.env, env);
+  try {
+    return await fn();
+  } finally {
+    for (const [name, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+}
 
 export const readEntries = (file) => readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));

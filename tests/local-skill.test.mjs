@@ -33,7 +33,7 @@ test("plugin-only local copy preserves nested dependencies, source identity and 
     const retain = [...guide.matchAll(/```sh\n([\s\S]*?)\n```/g)].find((match) => match[1].startsWith("# pstack-retain-plugin\n"))[1];
     execFileSync("sh", ["-c", retain], { env: { PATH: process.env.PATH, SOURCE_PLUGIN: installed, RETAINED_PLUGIN: retained }, encoding: "utf8" });
     expect(() => execFileSync("sh", ["-c", retain], { env: { PATH: process.env.PATH, SOURCE_PLUGIN: installed, RETAINED_PLUGIN: retained }, stdio: "pipe" })).toThrow();
-    const source = join(retained, "skills/reflect"), destination = join(root, "reflect-local");
+    const source = join(retained, "skills/setup-pstack"), destination = join(root, "setup-pstack-local");
     const before = readFileSync(join(source, "SKILL.md"));
     const installedEntries = readdirSync(installed, { recursive: true }).sort();
     let rejected;
@@ -44,15 +44,17 @@ test("plugin-only local copy preserves nested dependencies, source identity and 
     const result = copyLocalSkill(source, destination);
     expect(result.source).toBe(source);
     expect(result.sourceSha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(result.localName).toBe("reflect-local");
+    expect(result.localName).toBe("setup-pstack-local");
     expect(readFileSync(join(destination, ".pstack-source.json"), "utf8")).toContain(result.sourceSha256);
-    expect(readFileSync(join(destination, "SKILL.md"), "utf8")).toContain("name: reflect-local");
+    expect(readFileSync(join(destination, "SKILL.md"), "utf8")).toContain("name: setup-pstack-local");
     assertLocalDependencies(destination);
-    expect(readFileSync(join(destination, "references/judgment-reviewer.md"), "utf8")).toContain(join(retained, "skills/poteto-mode/references/project-skills.md"));
-    expect(readdirSync(root)).toEqual(["reflect-local"]);
+    const nested = readFileSync(join(destination, "references/runtimes.md"), "utf8");
+    expect(nested).toContain(`<${join(retained, "skills/poteto-mode/references/codex-tools.md")}#model-names>`);
+    expect(nested).toContain(`<${join(retained, "skills/poteto-mode/references/pi-tools.md")}#model-names>`);
+    expect(readdirSync(root)).toEqual(["setup-pstack-local"]);
     expect(readFileSync(join(source, "SKILL.md"))).toEqual(before);
     expect(() => copyLocalSkill(source, destination)).toThrow("Destination already exists");
-    expect(() => copyLocalSkill(source, join(root, "reflect"))).toThrow("distinct local skill name");
+    expect(() => copyLocalSkill(source, join(root, "setup-pstack"))).toThrow("distinct local skill name");
 
     // A host cache update must not invalidate dependencies of the local copy.
     rmSync(installed, { recursive: true });
@@ -60,10 +62,10 @@ test("plugin-only local copy preserves nested dependencies, source identity and 
 
     // Restore the reported defect, including the nested reviewer links. This
     // must fail on the absent sibling path, not parsing or host startup.
-    const broken = join(fixture, "broken/reflect-local");
+    const broken = join(fixture, "broken/setup-pstack-local");
     cpSync(source, broken, { recursive: true });
-    expect(() => assertLocalDependencies(broken)).toThrow("../poteto-mode/references/codex-tools.md");
-    expect(() => assertLocalDependencies(broken)).toThrow("../../poteto-mode/references/project-skills.md");
+    expect(() => assertLocalDependencies(broken)).toThrow("../../poteto-mode/references/codex-tools.md");
+    expect(() => assertLocalDependencies(broken)).toThrow("../../poteto-mode/references/pi-tools.md");
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
@@ -113,19 +115,19 @@ test.skipIf(!piDir || !existsSync(join(piDir, "dist/core/skills.js")))("Pi's nat
     cpSync(join(repo, "package.json"), join(installed, "package.json"));
     const root = join(project, ".agents/skills"); mkdirSync(root, { recursive: true }); mkdirSync(agentDir);
     const retained = join(fixture, "retained-pin"); cpSync(join(installed, "plugins/pstack"), retained, { recursive: true });
-    const result = copyLocalSkill(join(retained, "skills/reflect"), join(root, "reflect-local"));
+    const result = copyLocalSkill(join(retained, "skills/setup-pstack"), join(root, "setup-pstack-local"));
     const settingsManager = { getGlobalSettings: () => ({ packages: [installed] }), getProjectSettings: () => ({}), isProjectTrusted: () => true };
     const paths = await new DefaultPackageManager({ cwd: project, agentDir, settingsManager }).resolve();
     const loaded = loadSkills({ cwd: project, agentDir, includeDefaults: false, skillPaths: paths.skills.filter((entry) => entry.enabled).map((entry) => entry.path) });
-    const selected = loaded.skills.filter((skill) => skill.name === "reflect-local");
+    const selected = loaded.skills.filter((skill) => skill.name === "setup-pstack-local");
     expect(selected).toHaveLength(1);
     expect(selected[0].filePath).toBe(result.path);
-    expect(readFileSync(selected[0].filePath, "utf8")).toContain("name: reflect-local");
+    expect(readFileSync(selected[0].filePath, "utf8")).toContain("name: setup-pstack-local");
     assertLocalDependencies(dirname(selected[0].filePath));
     expect(loaded.skills.filter((skill) => skill.name === "reflect")).toHaveLength(1);
     expect(loaded.skills.filter((skill) => skill.name === "poteto-mode")).toHaveLength(1);
     expect(loaded.diagnostics.filter((entry) => entry.type === "collision")).toEqual([]);
-    expect(readdirSync(root)).toEqual(["reflect-local"]);
-    console.log("Native Pi catalog: /skill:reflect-local identifies only the approved local file; no turn started.");
+    expect(readdirSync(root)).toEqual(["setup-pstack-local"]);
+    console.log("Native Pi catalog: /skill:setup-pstack-local identifies only the approved local file; no turn started.");
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });

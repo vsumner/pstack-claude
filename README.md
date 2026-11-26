@@ -1,6 +1,7 @@
 # pstack
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/codenyer)
+[![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
 
 Lauren Tan's [pstack](https://github.com/cursor/plugins/tree/main/pstack) is an opinionated Cursor skill stack that improves agent outcomes. This is a port for Claude Code, Codex, Pi, GitHub Copilot, Muse, and other agent harnesses. It tracks upstream and also carries named policy forks, each declared in [`tools/forks.json`](tools/forks.json).
 
@@ -8,7 +9,45 @@ Tell `poteto-mode` your goal and it will invoke the correct workflow for the tas
 
 For concurrency bugs and invariants that tests cannot reach, `/create-formal-verification-skill` picks the riskiest property in your code, verifies it with a tool that fits, and leaves a project skill the next agent reruns. The separate [agent-formal-verify](https://github.com/michael-denyer/agent-formal-verify) plugin goes deeper on the method, with guided TLA+ model checking, Lean proofs, and Kani for Rust.
 
+## Built for Claude Code
+
+This port translates upstream's Cursor skills for Claude Code before installation. [Upstream's Claude Code install](https://github.com/cursor/plugins/tree/ca782ed/harness/pstack/claude-code) asks agents to translate Cursor names at runtime, using extra tokens and relying on them to apply the mapping correctly. This port also adds a SessionStart hook that routes tasks to `poteto-mode`.
+
 ## Install
+
+### Any harness: npm or Homebrew
+
+```shell
+npx open-pstack
+```
+
+Or install it once and run it by name:
+
+```shell
+npm install -g open-pstack
+open-pstack
+```
+
+With Homebrew:
+
+```shell
+brew install michael-denyer/tap/open-pstack
+```
+
+`open-pstack` needs Node 20 or later; Homebrew installs Node for you. It finds the agent harnesses on your `PATH` and shows a picker. Press Enter to install into the ones it found, or choose others by number or id, then confirm the planned steps. It runs the same recipe as each harness's section below.
+
+| Option | Effect |
+| --- | --- |
+| `--only claude,pi` | Install into the named harnesses without the picker. Each section below gives its id. |
+| `--yes` | Install into every detected harness without asking. |
+| `--dry-run` | Print every step without running or writing anything. |
+| `--list` | Show each harness id and whether it was detected. |
+
+The shared `~/.agents/skills` directory (id `skills`) is never chosen by default, because Codex and OpenCode read it as well as their own plugin and would load each skill twice. Choose it for Gemini CLI, Prime Agent, or DeepSeek Harness.
+
+Muse, Grok Build, MiniMax Code, Antigravity, and the shared skills directory install from a local copy of the plugin, so no clone is needed: `open-pstack` stages the copy that ships with it at `~/.local/share/open-pstack/pstack`, or under `XDG_DATA_HOME` when that is set. To update, upgrade the installer (`npm update -g open-pstack` or `brew upgrade open-pstack`) and run `open-pstack` again. That refreshes the staged copy, so the shared skills links pick up the new version and any new skills. Plugins that a harness installed itself update through that harness, as its section below describes. See [Install with open-pstack](docs/reference.md#install-with-open-pstack) for uninstalling.
+
+### One harness at a time
 
 <details>
 <summary><strong>Claude Code</strong></summary>
@@ -20,6 +59,10 @@ Run in Claude Code 2.1.292 or later:
 /plugin install pstack@pstack-claude
 ```
 
+Claude Code leaves auto-update off for third-party marketplaces, so pstack stays on the version you installed. To turn it on, run `/plugin`, open the **Marketplaces** tab, select `pstack-claude`, and choose **Enable auto-update**. To update once by hand, run `claude plugin update pstack@pstack-claude`.
+
+Or: `npx open-pstack --only claude`.
+
 </details>
 
 <a id="codex"></a>
@@ -28,12 +71,20 @@ Run in Claude Code 2.1.292 or later:
 
 Use this fork's [pinned Pi/Codex setup](docs/installing-pi-codex.md), including the local marketplace update and rollback steps. Select `pstack:poteto-mode` from the `$` skill picker in a fresh session. Explicit skills work without trusting the routing hook.
 
+Invoke a skill by typing `$` and its name, such as `$poteto-mode` or `$babysit`, then choosing its entry, which inserts `$pstack:<name>`. `/skills` lists every skill.
+
 </details>
 
 <details>
 <summary><strong>Pi</strong></summary>
 
-Use this fork's [pinned Pi/Codex setup](docs/installing-pi-codex.md). The Pi package loads the shared skills and extension, including subagent tools and `/loop`. Invoke a skill with `/skill:<name>`. Turning pstack routing off suppresses its mandate; Pi can still select skills from their descriptions.
+Use this fork's [pinned Pi/Codex setup](docs/installing-pi-codex.md), with Pi 1.5.1 or later. The package loads the skills and the pstack Pi extension, which adds the subagent, question, and wake-up tools the skills use, plus `/loop` and the routing instruction. Invoke a skill with `/skill:<name>`. Turning pstack routing off suppresses its mandate; Pi can still select skills from their descriptions.
+
+The generic commands below install upstream's `main`, not this fork's reviewed snapshot:
+
+```shell
+pi install git:github.com/michael-denyer/pstack-claude
+```
 
 </details>
 
@@ -51,6 +102,8 @@ This installs pstack for the Copilot CLI and the GitHub Copilot app, which share
 
 The Copilot build is tested on Copilot CLI 1.0.87 through 1.0.92. On those versions the routing hook's context reaches the session alongside other plugins' session-start context. If a later version keeps only one plugin's context, `setup-pstack` offers a [standing instruction](plugins/pstack/skills/setup-pstack/copilot.md#wire-it-in) for `~/.copilot/copilot-instructions.md` instead. On 1.0.92, once the CLI caches its computer-use experiment assignment, `copilot -p` sessions list no plugin skills and a `skill` call returns "Skill not found". Interactive sessions, the hooks, and the agents are unaffected.
 
+Or: `npx open-pstack --only copilot`.
+
 </details>
 
 <details>
@@ -67,13 +120,131 @@ muse plugins approve pstack
 
 The first command installs the native Muse plugin bundle. The second approves its `SessionStart` hook and agent definitions, which Muse runs only after approval. Start a new session afterwards. Invoke a skill with `/<name>` (for example `/poteto-mode`), which Muse lists for each user-invocable skill.
 
+Or, without a clone: `npx open-pstack --only muse`.
+
+</details>
+
+<details>
+<summary><strong>OMP</strong></summary>
+
+Run in your terminal:
+
+```shell
+omp plugin marketplace add michael-denyer/pstack-claude
+omp plugin install --scope user pstack@pstack-claude
+```
+
+Restart OMP after installing, disabling, or uninstalling pstack. OMP 18.16.0 shares one plugin cache across scopes, so an upgrade or removal can affect other installations; inspect their source and scope before changing them. See [OMP issue 16827](https://github.com/can1357/oh-my-pi/issues/16827).
+
+Or: `npx open-pstack --only omp`.
+
+</details>
+
+<details>
+<summary><strong>Kimi Code CLI</strong></summary>
+
+After a release containing `kimi.plugin.json` is published, close other Kimi sessions and install it in a fresh Kimi Code CLI session:
+
+```text
+/plugins install https://github.com/michael-denyer/pstack-claude
+/reload
+```
+
+To test an unreleased checkout, use `/plugins install /absolute/path/to/pstack-claude` instead, followed by `/reload`; Kimi copies the whole checkout, including Git metadata and local files, so use a clean, reviewed copy. To update, close other Kimi sessions, reinstall from the same source in a fresh session, and run `/reload`. Invoke a skill as `/skill:pstack:poteto-mode`; see the [Kimi mapping](plugins/pstack/skills/poteto-mode/references/kimi-tools.md) for tool guidance.
+
+`open-pstack --only kimi` prints these steps; Kimi installs plugins only from inside a session.
+
+</details>
+
+<details>
+<summary><strong>Grok Build</strong></summary>
+
+```shell
+git clone https://github.com/michael-denyer/pstack-claude
+cd pstack-claude
+grok plugin install "$PWD/plugins/pstack" --trust
+grok plugin enable pstack
+```
+
+Start a new session and use `/poteto-mode` to load the skill explicitly. To update a local install, quit Grok sessions, inspect `grok plugin details pstack` and back up any edits in the installed copy, pull the checkout, run `grok plugin uninstall pstack --keep-data`, and repeat the last two commands. If pstack was disabled, disable it again before restarting. `grok plugin update` does not refresh a local install.
+
+Or, without a clone: `npx open-pstack --only grok`.
+
+</details>
+
+<details>
+<summary><strong>MiniMax Code</strong></summary>
+
+For a first install, check that `${MINIMAX_DATA_DIR:-$HOME/.minimax}/plugins/pstack` does not already exist. Then run in your terminal:
+
+```shell
+git clone https://github.com/michael-denyer/pstack-claude
+cd pstack-claude
+mkdir -p "${MINIMAX_DATA_DIR:-$HOME/.minimax}/plugins"
+cp -R plugins/pstack "${MINIMAX_DATA_DIR:-$HOME/.minimax}/plugins/pstack"
+```
+
+MiniMax Code loads each directory under `plugins/` in its data directory as a local plugin, and reads pstack through its Claude Code reader with the skills, agents, and routing hook. `mcode plugin list` shows it as `pstack@local`. To update, record its enabled state, quit every `mcode` process, and move `plugins/pstack` to an unused path outside `plugins/`. Run `git pull` and the `cp` line again. Check `mcode plugin list` and restore the previous enabled state if needed.
+
+Or, without a clone: `npx open-pstack --only minimax`.
+
+</details>
+
+<details>
+<summary><strong>OpenCode 2</strong></summary>
+
+Clone the repository, then add the absolute path to `plugins/pstack/opencode` to the existing `plugins` array in `~/.config/opencode/opencode.jsonc`. On Windows, use a path such as `C:/Users/name/pstack-claude/plugins/pstack/opencode`. Restart OpenCode after checkout updates.
+
+Alternatively, install, check, or update the native Git package:
+
+```bash
+opencode plugin add 'github:michael-denyer/pstack-claude#main'
+opencode plugin check 'github:michael-denyer/pstack-claude#main'
+opencode plugin update 'github:michael-denyer/pstack-claude#main'
+```
+
+A commit-pinned reference does not advance. If a check immediately after installation reports no package plugins, wait for the server to load it and check again.
+
+If you previously installed pstack skills into `~/.agents/skills`, inspect the links and remove only those pointing to your pstack checkout before using the plugin.
+
+The plugin registers `pstack-` skill IDs, registers the bundled agents as subagents under their Claude Code names, such as `pstack:poteto-agent`, and adds routing in root sessions. If routing is missing, run `opencode api get /api/skill` and check that each `pstack-` path belongs to this plugin. Resolve any conflicting skill before manually invoking that ID. Use `session hook: off` in the OpenCode model sheet to disable routing. To remove the plugin, remove its configured path and restart the service, or use `opencode plugin remove` with the exact Git specifier. OpenCode 1 is unsupported. See the [OpenCode mapping](plugins/pstack/skills/poteto-mode/references/opencode-tools.md).
+
+Or: `npx open-pstack --only opencode`.
+
+</details>
+
+<details>
+<summary><strong>Antigravity (agy)</strong></summary>
+
+Run in your terminal:
+
+```shell
+git clone https://github.com/michael-denyer/pstack-claude
+cd pstack-claude
+agy plugin install ./plugins/pstack
+```
+
+This installs the native Antigravity plugin bundle (`skills`, `agents`, and `SessionStart` routing hook) into `~/.gemini/config/plugins/pstack`.
+
+Or, without a clone: `npx open-pstack --only agy`.
+
+</details>
+
+<a id="deepseek-harness"></a>
+<details>
+<summary><strong>DeepSeek Harness (skills-only)</strong></summary>
+
+Use the [shared skills installation](#other-harnesses) below to link each pstack skill directory into `~/.agents/skills/`, which DSH discovers by default. Ask for `poteto-mode` by name and use the [DSH mapping](plugins/pstack/skills/poteto-mode/references/dsh-tools.md), regardless of the model provider. This skills-only installation adds no native DSH bundle, Pi extension, routing hook, or role sheet.
+
+Or, without a clone: `npx open-pstack --only skills`.
+
 </details>
 
 <a id="other-harnesses"></a>
 <details>
 <summary><strong>Other harnesses</strong></summary>
 
-OpenCode (the CLI and the desktop app), Gemini CLI, Prime Agent, and skills-only Codex installs read skills from `~/.agents/skills/`. Run in your terminal:
+Gemini CLI, Prime Agent, DeepSeek Harness skills-only installs, and skills-only Codex installs read skills from `~/.agents/skills/`. Run in your terminal:
 
 ```shell
 git clone https://github.com/michael-denyer/pstack-claude
@@ -87,13 +258,15 @@ done
 
 To update, run `git pull` in the clone, then run the `for` loop again to link skills added since the last run. These installs have no routing hook, so ask for `poteto-mode` by name or add a standing instruction to the harness's instruction file. See [shared installation](docs/reference.md#shared-skills-installation) for per-harness notes and uninstalling.
 
+Or, without a clone: `npx open-pstack --only skills`.
+
 </details>
 
 ### Configure
 
-pstack routes tasks to `poteto-mode` automatically. At session start, a hook injects an instruction that points the agent at it: the plugin's hook on Claude Code, Codex, GitHub Copilot, and Muse, and the pstack extension on Pi. Codex runs the hook only after you trust it through `/hooks`, and Muse only after `muse plugins approve pstack`. Other harnesses have no hook.
+pstack provides automatic routing on Claude Code, Codex, GitHub Copilot, Muse, MiniMax Code, Antigravity, Pi, Kimi Code CLI, OMP, and OpenCode 2. The runtimes deliver the instruction at different points: Kimi adds it while the plugin is enabled, OMP adds it before each main-agent turn, and OpenCode adds it at each model step in root sessions. Grok Build exposes a routing hint through a skill description; the model may not follow it. Codex requires hook trust through `/hooks`, and Muse requires `muse plugins approve pstack`. Other harnesses have no automatic routing.
 
-Run `setup-pstack` to turn automatic routing on or off, change model defaults, or set a reasoning effort per role (`arena runners: opus @xhigh, fable @max`).
+Run `setup-pstack` to turn automatic routing on or off, change model defaults, or set a reasoning effort per role (`arena runners: opus @xhigh, fable @max`). On OMP, the session hook setting applies globally across profiles; on Kimi, enable or disable the plugin to control routing. See the [routing reference](docs/reference.md#automatic-routing).
 
 ## Getting started
 
@@ -102,6 +275,8 @@ Use poteto-mode to fix the search filter resetting when I change pages.
 ```
 
 For a bug, it reproduces the failure, uses `how` and `why` to investigate, delegates the fix, then reruns the failing case. If the fix crosses a function boundary, it brings in `architect` before implementation. You receive the fix and the failing and passing evidence.
+
+A localized bug with a demonstrated cause can use the [focused-fix exception](plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md#focused-fix-exception). One delegate investigates and implements the correction when it preserves existing interfaces and state semantics and has a focused regression check. Reproduction, verification, and required independent review still apply; a small patch alone does not qualify.
 
 [Other playbooks](plugins/pstack/skills/poteto-mode/SKILL.md#playbooks) cover planning, features, refactoring, performance issues, investigations, prototypes, PR maintenance, shipping, and longer projects.
 
@@ -117,6 +292,10 @@ For a bug, it reproduces the failure, uses `how` and `why` to investigate, deleg
 ## Data handling
 
 pstack has no server or telemetry. Anything its skills ask your agent to read, including session transcripts, goes to your model provider. Scripts run locally, and PR tools use your GitHub CLI login.
+
+This port has no automatic agent-diary reporting or diary opt-in setting. For a local decision trail, ask for [`show-me-your-work`](plugins/pstack/skills/show-me-your-work/SKILL.md). Longer or unattended workflows also invoke it. The trail stays uncommitted by default. If the trail is committed and pushed to a shared PR, anyone with access to the PR can read it.
+
+To share feedback, submit a short, manually reviewed report through [GitHub issues](https://github.com/michael-denyer/pstack-claude/issues). Include the pstack version, runtime, relevant workflow, and observed result. Remove credentials, customer data, private repository links, and sensitive log or configuration values before posting; share a summary instead of raw transcripts.
 
 ## Contributing
 
