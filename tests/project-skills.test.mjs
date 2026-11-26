@@ -21,40 +21,38 @@ test("project roots preserve Claude support and give Pi and Codex the shared dis
 
 test("driver output is resolved for Pi and Codex rather than written to Claude's directory", () => {
   const generator = read("create-verification-skill/SKILL.md");
-  expect(generator).toContain("project-skills.md");
-  expect(generator).toContain("`.agents/skills/` on Pi and Codex");
-  expect(generator).toContain("Write `<driver-dir>/SKILL.md`");
-  expect(generator).toContain("Create `<driver-dir>/features/README.md`");
+  const pi = read("poteto-mode/references/pi-tools.md");
+  const codex = read("poteto-mode/references/codex-tools.md");
+  expect(pi).toContain("`.agents/skills/verify/`");
+  expect(codex).toContain("New Codex drivers default to `.agents/skills/verify/`");
   expect(generator).not.toMatch(/^(?:Write|Create) `\.claude\/skills\//m);
-  expect(generator).toContain("`name: verify` by default, or the explicitly requested name");
+  expect(generator).toContain("Name it `verify`");
 });
 
 test("creation, maintenance, callers and personal modes share the same path policy", () => {
+  // Skills that still carry the fork's shared location reference link it directly;
+  // the rest resolve their root through the per-skill notes in the Pi mapping.
   for (const file of [
-    "create-verification-skill/SKILL.md", "maintain-verification-skill/SKILL.md",
+    "maintain-verification-skill/SKILL.md",
     "create-formal-verification-skill/SKILL.md", "maintain-formal-verification-skill/SKILL.md",
-    "automate-me/SKILL.md", "poteto-mode/SKILL.md", "poteto-help/SKILL.md",
+    "automate-me/SKILL.md", "poteto-help/SKILL.md",
     "poteto-mode/playbooks/authoring-a-skill.md",
   ]) expect(read(file)).toContain("project-skills.md");
+  const pi = read("poteto-mode/references/pi-tools.md");
+  for (const skill of ["create-verification-skill", "poteto-mode"]) expect(pi).toContain(`| \`${skill}\` |`);
   const maintenance = read("maintain-verification-skill/SKILL.md");
   expect(maintenance).toContain("do not assume a particular driver name");
   expect(maintenance).toContain("Preserve the selected skill's existing path and name");
-  const personal = read("automate-me/SKILL.md");
-  expect(personal).toContain("<project-skills>/<handle>-mode/SKILL.md");
-  expect(personal).toContain("<personal-skills>/<handle>-mode/");
-  expect(personal).not.toMatch(/^Look recursively for `\.claude\/skills/m);
+  expect(pi).toContain("`.agents/skills/<handle>-mode/SKILL.md`");
+  expect(pi).toContain("`skills/` folder for a personal one");
+  expect(pi).not.toMatch(/^Look recursively for `\.claude\/skills/m);
 });
 
 test("runtime mappings and reflection recognize host roots without requiring a config change", () => {
   for (const host of ["pi", "codex", "copilot", "muse"]) {
     expect(read(`poteto-mode/references/${host}-tools.md`)).toContain("project-skills.md");
   }
-  expect(read("poteto-mode/references/pi-tools.md")).not.toContain("add `../.claude/skills` to the `skills` list");
-  for (const reviewer of ["judgment", "tooling", "divergent"]) {
-    const text = read(`reflect/references/${reviewer}-reviewer.md`);
-    expect(text).toContain("project-skills.md");
-    expect(text).toContain("Route findings only to skills, tools, or MCPs this transcript used");
-  }
+  expect(read("reflect/SKILL.md")).toContain("route each to an edit on an existing skill");
 });
 
 const piDir = process.env.PI_PACKAGE_DIR;

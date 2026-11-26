@@ -1,8 +1,8 @@
+import { resolveHeadChecks } from "./head-checks.ts";
 import { landingRevision } from "./landing.ts";
 import {
   ChecksUnavailable,
   WatcherQueryError,
-  resolveChecks,
   resolveReviewThreads,
 } from "./github.ts";
 import { DeadlineExceeded, type WatchDeadline } from "./deadline.ts";
@@ -58,6 +58,13 @@ async function mergeAssessment(
   };
 }
 type OpenFacts = Extract<T.PullRequestFacts, { readonly state: "OPEN" }>;
+function hasMergeConflict(facts: OpenFacts): boolean {
+  return (
+    facts.mergeable === "CONFLICTING" ||
+    facts.mergeStateStatus === "DIRTY" ||
+    facts.mergeStateStatus === "CONFLICTING"
+  );
+}
 export type NoChecksConfirmer = (
   head: Pick<OpenFacts, "context" | "headRefOid">
 ) => boolean;
@@ -88,78 +95,29 @@ const neverConfirms: NoChecksConfirmer = () => false;
 async function noChecksCi(
   reader: T.GitHubReader,
   facts: OpenFacts,
+  queuedWithoutRuns: readonly T.SuiteApp[],
   confirmNoChecks = neverConfirms
 ): Promise<T.CiNone | T.CiUnreported> {
   const merge = await mergeAssessment(reader, facts);
-  if (merge.anyCommitReported || merge.github.kind === "refused")
-    throw new ChecksUnavailable(
-      `no checks reported on head ${facts.headRefOid}, but a commit on this PR has reported checks`
-    );
   const none = {
     failed: [],
     pending: [],
     hadPreviousPassingCi: false,
   } as const;
+  if (merge.anyCommitReported || merge.github.kind === "refused") {
+    if (merge.github.headRollupState === null && hasMergeConflict(facts))
+      return {
+        ...none,
+        kind: "ci-unreported",
+        hadPreviousPassingCi: merge.hadPreviousPassingCi,
+      };
+    throw new ChecksUnavailable(
+      `no checks reported on head ${facts.headRefOid}, but a commit on this PR has reported checks`
+    );
+  }
   return confirmNoChecks(facts)
-    ? { ...none, kind: "ci-none", github: merge.github }
+    ? { ...none, kind: "ci-none", github: merge.github, queuedWithoutRuns }
     : { ...none, kind: "ci-unreported" };
-}
-async function reportedCi(
-  reader: T.GitHubReader,
-  facts: T.PullRequestFacts,
-  checks: T.ReportedChecks,
-  pendingHistory: "include" | "omit"
-): Promise<T.CiState> {
-  const failed = nonEmpty(
-    checks.checks.filter(
-      (check): check is T.FailedCheck => check.kind === "failed"
-    )
-  );
-  const pending = nonEmpty(
-    checks.checks.filter(
-      (check): check is T.PendingCheck => check.kind === "pending"
-    )
-  );
-  if (failed === null && pending !== null && pendingHistory === "omit")
-    return {
-      kind: "ci-pending",
-      source: checks.source,
-      all: checks.checks,
-      failed: [],
-      pending,
-      hadPreviousPassingCi: false,
-    };
-  const merge = await mergeAssessment(reader, facts);
-  const base = {
-    source: checks.source,
-    all: checks.checks,
-    hadPreviousPassingCi: merge.hadPreviousPassingCi,
-  };
-  if (failed !== null)
-    return {
-      ...base,
-      kind: "ci-failing",
-      failed,
-      pending: pending ?? [],
-      github: merge.github,
-    };
-  if (merge.github.kind === "refused")
-    return {
-      ...base,
-      kind: "ci-github-rejected",
-      failed: [],
-      pending: pending ?? [],
-      github: merge.github,
-    };
-  if (pending !== null)
-    return { ...base, kind: "ci-pending", failed: [], pending };
-  return {
-    ...base,
-    kind: "ci-clean",
-    failed: [],
-    pending: [],
-    github: merge.github,
-  };
 }
 const AUTOMATION_TOKENS = [
   "bugbot",
@@ -184,8 +142,8 @@ const VERDICT_FACTS: Record<
 };
 const mergeabilityUnknown = (facts: T.PullRequestFacts): boolean =>
   facts.mergeable === "UNKNOWN" || facts.mergeStateStatus === "UNKNOWN";
-// GitHub computes these two on the first read that asks, so an unknown first
-// read usually has its answer by the re-read. That is not the PR changing.
+// GitHub may compute either field between reads. Ignore only the field
+// whose original value was unknown.
 const COMPUTED_ON_DEMAND: ReadonlySet<string> = new Set([
   "mergeable",
   "mergeStateStatus",
@@ -195,17 +153,18 @@ const changedFacts = (
   after: T.PullRequestFacts
 ): string[] =>
   (Object.keys(VERDICT_FACTS) as (keyof typeof VERDICT_FACTS)[])
-    .filter((key) => before[key] !== after[key])
+    .filter((fact) => before[fact] !== after[fact])
     .filter(
-      (key) => !(mergeabilityUnknown(before) && COMPUTED_ON_DEMAND.has(key))
+      (fact) => !(before[fact] === "UNKNOWN" && COMPUTED_ON_DEMAND.has(fact))
     )
-    .map((key) => `${key} ${before[key]} -> ${after[key]}`);
+    .map((fact) => `${fact} ${before[fact]} -> ${after[fact]}`);
 export async function readSnapshot(args: {
   readonly reader: T.GitHubReader;
   readonly context: T.PrContext;
   readonly pendingHistory: "include" | "omit";
   readonly allowDraft: boolean;
   readonly confirmNoChecks?: NoChecksConfirmer;
+  readonly expectedApps?: readonly string[];
 }): Promise<T.PrSnapshot> {
   const facts = await args.reader.pullRequest(args.context);
   if (facts.state === "MERGED" || facts.mergedAt !== null)
@@ -214,12 +173,74 @@ export async function readSnapshot(args: {
     return { kind: "closed", context: args.context, facts };
   const [threads, checks] = await Promise.all([
     resolveReviewThreads(args.reader, args.context),
-    resolveChecks(args.reader, args.context),
+    resolveHeadChecks(args.reader, facts, args.expectedApps),
   ]);
-  const ci =
-    checks.kind === "no-checks"
-      ? await noChecksCi(args.reader, facts, args.confirmNoChecks)
-      : await reportedCi(args.reader, facts, checks, args.pendingHistory);
+  const failed = nonEmpty(
+    checks.checks.filter(
+      (check): check is T.FailedCheck => check.kind === "failed"
+    )
+  );
+  const pending = nonEmpty(
+    checks.checks.filter(
+      (check): check is T.PendingCheck => check.kind === "pending"
+    )
+  );
+  let ci: T.CiState;
+  if (checks.kind === "no-checks")
+    ci = await noChecksCi(
+      args.reader,
+      facts,
+      checks.queuedWithoutRuns,
+      args.confirmNoChecks
+    );
+  else if (
+    failed === null &&
+    pending !== null &&
+    args.pendingHistory === "omit"
+  )
+    ci = {
+      kind: "ci-pending",
+      source: checks.source,
+      all: checks.checks,
+      failed: [],
+      pending,
+      hadPreviousPassingCi: false,
+    };
+  else {
+    const merge = await mergeAssessment(args.reader, facts);
+    const base = {
+      source: checks.source,
+      all: checks.checks,
+      hadPreviousPassingCi: merge.hadPreviousPassingCi,
+    };
+    if (failed !== null)
+      ci = {
+        ...base,
+        kind: "ci-failing",
+        failed,
+        pending: pending ?? [],
+        github: merge.github,
+      };
+    else if (merge.github.kind === "refused")
+      ci = {
+        ...base,
+        kind: "ci-github-rejected",
+        failed: [],
+        pending: pending ?? [],
+        github: merge.github,
+      };
+    else if (pending !== null)
+      ci = { ...base, kind: "ci-pending", failed: [], pending };
+    else
+      ci = {
+        ...base,
+        kind: "ci-clean",
+        failed: [],
+        pending: [],
+        github: merge.github,
+        queuedWithoutRuns: checks.queuedWithoutRuns,
+      };
+  }
   const factsAfterChecks = await args.reader.pullRequest(args.context);
   const changed = changedFacts(facts, factsAfterChecks);
   if (changed.length > 0)
@@ -234,22 +255,17 @@ export async function readSnapshot(args: {
     facts,
     threads,
     ci,
-    reviewAutomationRunning:
-      checks.kind === "reported" &&
-      checks.checks.some(
-        (check) =>
-          check.kind === "pending" &&
-          AUTOMATION_TOKENS.some((token) =>
-            check.name.toLowerCase().includes(token)
-          )
-      ),
+    reviewAutomationRunning: checks.checks.some(
+      (check) =>
+        check.kind === "pending" &&
+        AUTOMATION_TOKENS.some((token) =>
+          check.name.toLowerCase().includes(token)
+        )
+    ),
   };
 }
 const conflictBlocker = (row: T.PrSnapshot): T.MergeBlocker | null =>
-  row.kind === "open" &&
-  (row.facts.mergeable === "CONFLICTING" ||
-    row.facts.mergeStateStatus === "DIRTY" ||
-    row.facts.mergeStateStatus === "CONFLICTING")
+  row.kind === "open" && hasMergeConflict(row.facts)
     ? { kind: "merge-conflicts", pr: row.context, facts: row.facts }
     : null;
 function threadBlocker(row: T.PrSnapshot): T.MergeBlocker | null {
@@ -580,6 +596,7 @@ export async function runSimple(args: {
           pendingHistory: "include",
           allowDraft: args.options.allowDraft,
           confirmNoChecks,
+          expectedApps: args.options.expectedApps,
         })
       );
     const complete = nonEmpty(rows);
@@ -819,7 +836,7 @@ export function evaluateQueue(
     kind: "merge-queue" as const,
     unmergedCount: active.length,
   };
-  const key =
+  const waitKey =
     reason.kind === "pending-checks"
       ? `pending:${frontier.number}:${reason.pending.length}`
       : reason.kind === "merge-queue"
@@ -827,10 +844,10 @@ export function evaluateQueue(
         : `${reason.kind}:${frontier.number}`;
   return {
     kind: "waiting",
-    state: { ...state, frontier, lastWaitKey: key },
+    state: { ...state, frontier, lastWaitKey: waitKey },
     frontier,
     reason,
-    emit: state.lastWaitKey !== key,
+    emit: state.lastWaitKey !== waitKey,
   };
 }
 export async function runQueued(args: {
@@ -871,6 +888,7 @@ export async function runQueued(args: {
       pendingHistory: "omit",
       allowDraft: args.options.allowDraft,
       confirmNoChecks,
+      expectedApps: args.options.expectedApps,
     });
     const applied = applyQueueSnapshot(
       state,

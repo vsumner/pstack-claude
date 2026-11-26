@@ -14,8 +14,8 @@ test("Codex's generated model guidance reads saved choices without changing glob
   expect(text).toContain("`${CODEX_HOME:-$HOME/.codex}/pstack-models.md`");
   expect(text).toContain("Without an explicit user-selected model or effort, inherit the host session settings");
   expect(text).toContain("Keep global `AGENTS.md` unchanged");
-  const setup = read("setup-pstack/SKILL.md");
-  const wiring = setup.split("### 7. Wire it in")[1].split("### 8.")[0];
+  const setup = read("setup-pstack/references/runtimes.md");
+  const wiring = setup.split("**Step 7 (wire it in).**")[1].split("\n")[0];
   expect(wiring).toContain("Leave global `AGENTS.md` unchanged");
   const row = setup.split("\n").find((line) => line.startsWith("| Codex |"));
   expect(row).toContain("read at dispatch");
@@ -31,12 +31,9 @@ test("Pi's generated catalog guidance requires a listed choice rather than guess
 });
 
 test("Pi and Codex saved effort choices override the shared adjustment policy", () => {
-  expect(read("poteto-mode/SKILL.md")).toContain("the host mapping's inheritance and saved-choice rules take precedence over these adjustments");
-  for (const host of ["pi", "codex"]) {
-    const mapping = read(`poteto-mode/references/${host}-tools.md`);
-    expect(mapping).toContain("without an implicit adjustment");
-    expect(mapping).toContain("passes no model override");
-  }
+  expect(read("poteto-mode/SKILL.md")).toContain("The role's `@level`, or the sheet's `default effort` line, sets its starting level, and `session` starts from the session's level");
+  expect(read("poteto-mode/references/pi-tools.md")).toContain("`inherit-parent`, `auto`, or no `model` runs the child on the parent's current model");
+  expect(read("poteto-mode/references/codex-tools.md")).toContain("Without an explicit user-selected model or effort, inherit the host session settings");
 });
 
 test("the workflow preserves existing authority instead of granting external-action permission", () => {
@@ -52,18 +49,19 @@ test("host tool capabilities and completion do not assume one universal API", ()
   const pi = read("poteto-mode/references/pi-tools.md");
   const skill = read("poteto-mode/SKILL.md");
   expect(codex).toContain("not a universal API");
-  expect(codex).toContain("for example `wait` or `wait_agent`");
+  expect(codex).toContain("`wait_agent`");
   expect(codex).toContain("do not add a separate process manager");
   expect(codex).not.toContain("| Run a shell command | `shell` |");
-  expect(pi).toContain("Pi core 1.4 has no `pi mcp list` command");
-  expect(skill).toContain("On Pi, `completed` means the child process exited");
-  expect(skill).not.toContain("Only an explicit stop ends it");
+  expect(pi).toContain("`pi mcp list`");
+  expect(skill).toContain("means the completion was *notified*, not that the process exited");
 });
 
 test("reflection copies use host roots and protect pinned installs", () => {
-  const text = read("reflect/SKILL.md");
-  expect(text).toContain("pinned package snapshots as immutable");
-  expect(text).toContain("[project skill locations](../poteto-mode/references/project-skills.md)");
-  expect(text).toContain("duplicate-name discovery effect before copying");
-  expect(text).not.toContain("show its destination, `.claude/skills/");
+  const pi = read("poteto-mode/references/pi-tools.md");
+  const codex = read("poteto-mode/references/codex-tools.md");
+  for (const mapping of [pi, codex]) {
+    expect(mapping).toContain("never edit the installed");
+    expect(mapping).toContain("project-skills.md");
+  }
+  expect(pi).toContain("name collision keeps the project skill over the personal one");
 });

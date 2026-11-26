@@ -1,6 +1,6 @@
 # Pi equivalence
 
-This table lists every Claude Code mechanism the pstack plugin depends on, found by scanning `plugins/pstack/` for tool names, agent fields, hooks, paths, bundled skills, CLIs, and model names. Each row says how Pi 1.1 provides the same behavior and what proves it. `tests/pi-equivalence.test.mjs` fails when a row lacks a valid status, when an `extension` or `script` row names a test that does not exist, or when a `difference` row gives no reason.
+This table lists every Claude Code mechanism the pstack plugin depends on, found by scanning `plugins/pstack/` for tool names, agent fields, hooks, paths, bundled skills, CLIs, and model names. Each row says how Pi 1.5.1 provides the same behavior and what proves it. `tests/pi-equivalence.test.mjs` fails when a row lacks a valid status, when an `extension` or `script` row names a test that does not exist, or when a `difference` row gives no reason.
 
 The Live column is inherited upstream evidence from that Pi 1.1 port, not a new live run of this fork. The [pinned fork baseline](installing-pi-codex.md) was checked offline on Pi 1.4.0 and Codex 0.163.0. It does not re-establish the historical live verdicts or blocked process-identity coverage.
 
@@ -17,7 +17,7 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 
 | ID | Claude Code mechanism | On Pi | Status | Evidence | Live |
 | --- | --- | --- | --- | --- | --- |
-| T01 | `Agent` tool dispatch | `agent` tool runs a child `pi --mode rpc` process and sends the prompt as an RPC command on its stdin | extension | `foreground waits, returns the final text and agentId, and runs the exact child command` | VERIFIED |
+| T01 | `Agent` tool dispatch | `agent` tool runs a child `pi --mode rpc` process and sends the prompt as an RPC command on its stdin. A `pi agent tools: off` sheet line removes it, for a profile that delegates through another extension. A `pi agent host: hc` line inside herdr-core runs the child as an interactive `pi` in its own `hc` terminal instead, and a `pi agent host: t3` line inside T3 Code runs it as a T3 Code child thread | extension | `foreground waits, returns the final text and agentId, and runs the exact child command` | VERIFIED |
 | T02 | `subagent_type` | Resolves to the plugin's agent files; unknown types list the valid ones | extension | `unknown subagent_type is an error listing every valid type` | VERIFIED |
 | T03 | Per-call `model` | Family names resolve through `models.json` and the sheet's `pi models:` line | extension | `alias, sheet override, inherit-parent, auto, pass-through, and no parent model` | VERIFIED |
 | T04 | `run_in_background` | Returns the agent id at once; completion joins the running turn at the next tool boundary, or starts a turn when idle, after the process exits | extension | `background returns at once and the completion notice comes only after the process exits` | VERIFIED |
@@ -29,11 +29,11 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 | T10 | Deferred tool loading (`ToolSearch`) | Every pstack tool registers at startup with `model-only` exposure, so Pi declares it to the model from the first turn, in every `codemode.mode`, and `tool_search` never has to load it | extension | `every pstack tool is model-only, so Pi declares it to the model in every codemode mode and never defers it` | VERIFIED |
 | T11 | `Skill` tool and `/command` | Pi lists skills in the system prompt; `/skill:<name>` forces one | native | Pi docs/skills.md | n/a |
 | T12 | `pstack:` skill namespace | Skills load under their bare names and run as `/skill:<name>`; agent types keep `pstack:` | difference | Command spelling only. Skills name each other by bare name in prose, and agent types resolve with the prefix. | n/a |
-| T13 | `AskUserQuestion` | `ask_user_question` with the same shape; without a UI, and in a child agent, it fails and tells the model to ask in plain text | extension | `a single-select question returns the chosen label` | n/a |
+| T13 | `AskUserQuestion` | `ask_user_question` with the same shape; without a UI, and in a child agent, it fails and tells the model to ask in plain text. `pi ask tool: off` in the override sheet skips the registration, so another extension can own the name | extension | `a single-select question returns the chosen label` | n/a |
 | T14 | `TaskCreate`/`TaskUpdate`/`TodoWrite` | poteto-mode's own `todo.md` fallback | mapping | poteto-mode Platform Adaptation; pi-tools.md Tool actions | n/a |
 | T15 | `Read`/`Edit`/`Write`/`Bash`/`Grep`/`Glob` | `read`, `edit`, `write`, `bash`; `grep`, `find`, `ls` when enabled | native | pi-tools.md Tool actions | n/a |
 | T16 | `WebFetch`/`WebSearch` | `curl` through `bash`; web search through an MCP server | difference | No skill names either tool. Fetching works through `bash`. | n/a |
-| T17 | `ScheduleWakeup` (other named tools are never referenced) | `schedule_wakeup` with the same shape | extension | `clamps to 60 s and fires the prompt as a follow-up user message` | VERIFIED |
+| T17 | `ScheduleWakeup` (other named tools are never referenced) | `schedule_wakeup` with the same shape | extension | `clamps to 60 s and fires the prompt as a follow-up custom message that starts a turn` | VERIFIED |
 | T18 | MCP tool discovery | Pi's built-in MCP; list servers from the session's tools or `pi mcp list` | mapping | pi-tools.md `why` note | n/a |
 | T19 | Facts named in the system prompt | Pi's system prompt lists tools and skills; the transcript directory is given in pi-tools.md | mapping | pi-tools.md `reflect` note | n/a |
 | T20 | Image-generation tool | None, as on Claude Code; draw with Mermaid or text | difference | Claude Code has no such tool either, so `teach` already falls back. | n/a |
@@ -46,15 +46,16 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 | A06 | Agent file body as the child's system prompt | Appended with `--append-system-prompt`, keeping Pi's skill list visible to the child | extension | `the effort parameter passes --thinking to any agent type, keeps a pstack agent's body as a 0600 system prompt file, and no effort runs at the parent's level` | VERIFIED |
 | H01 | `SessionStart` hook | The routing instruction is added at every agent start, so it survives resume, clear, and compaction | extension | `injects the mandate and the full sheet on every agent start` | VERIFIED |
 | H02 | `CLAUDE_PLUGIN_ROOT` | The extension locates the plugin from its own file path | extension | `injects the mandate when there is no sheet` | n/a |
-| H03 | `~/.claude` config directory | `$PI_CODING_AGENT_DIR` or `~/.pi/agent` | mapping | setup-pstack Other runtimes | n/a |
+| H03 | `~/.claude` config directory | `$PI_CODING_AGENT_DIR` or `~/.pi/agent` | mapping | setup-pstack references/runtimes.md | n/a |
 | H04 | Override sheet plus `@` include | The extension adds the whole sheet to the system prompt, children included | extension | `a child pi gets the sheet but not the mandate` | VERIFIED |
 | H05 | `CLAUDE.md` instructions file | Pi loads `AGENTS.md` or `CLAUDE.md` per directory, plus `~/.pi/agent/AGENTS.md` | native | pi-tools.md Instructions file | n/a |
 | H06 | `.claude/settings.local.json` env for todo tools | Pi has no todo tools; the `todo.md` fallback applies | n/a | poteto-mode Platform Adaptation | n/a |
+| H07 | A sheet committed at `<repo>/.claude/pstack-models.md` replaces the user's sheet in that project | The extension reads the same path: the git root of the working directory, or the directory itself when git cannot say. The prompt sheet, model routing, and agent host read the session's working directory on each use. The `pi agent tools: off` and `pi ask tool: off` lines are read at install, from the directory Pi started in, because Pi registers tools at install and gives the extension no session directory there; after a resume into another project they still follow the start directory | extension | `a sheet committed at the git root replaces the agent sheet, from a subdirectory` | n/a |
 | F01 | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects` transcripts | `find-transcript.mjs` reads Pi sessions and follows the active branch | script | `a Pi session's opening prompt is the first user message on the branch that ends at the last entry` | VERIFIED |
 | F07 | Own transcript as evidence | Same reader; `worktree-audit.mjs` scans Pi session roots | script | `a Pi session in a second transcripts root marks the worktree it ran in as a recent chat` | n/a |
 | F02 | `.claude/skills/` project and user skills | `.pi/skills/` or `.agents/skills/` | mapping | pi-tools.md `create-verification-skill` note | n/a |
 | F03 | `${CLAUDE_CODE_PLUGIN_CACHE_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins}/` install path | Skill files load from the Pi package directory that `pi list` shows | mapping | pi-tools.md `reflect` note | n/a |
-| F04 | `~/.claude/orchestrate/<slug>/` store | A plain directory, used unchanged | native | orchestrate playbook | n/a |
+| F04 | `~/.claude/orchestrate/<slug>/` store | A plain directory, used unchanged | native | Autopilot-full playbook | n/a |
 | F05 | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/shell-snapshots/` cleanup advice | Cleanup advice only | n/a | worktree-cleanup playbook | n/a |
 | F06 | `.claude/worktrees` | The extension uses the same path | extension | `keeps a worktree with changes and reports its path and branch` | n/a |
 | S01 | Bundled `run` skill | Run the app through `bash` | mapping | pi-tools.md Driver and bundled skills | n/a |
@@ -77,4 +78,4 @@ The Live column records the end-to-end run on real Pi with `PSTACK_PI_LIVE=1` (`
 | X02 | Effort levels and `@level` | Same five levels, passed as the `agent` tool's `effort`, which becomes `--thinking` | extension | `the effort parameter passes --thinking to any agent type, keeps a pstack agent's body as a 0600 system prompt file, and no effort runs at the parent's level` | VERIFIED |
 | X03 | `inherit-parent` / `auto` | The child runs on the parent's current model | extension | `alias, sheet override, inherit-parent, auto, pass-through, and no parent model` | n/a |
 | X04 | Compaction and `/clear` | Injection on every agent start keeps the routing instruction | extension | `injects the mandate and the full sheet on every agent start` | VERIFIED |
-| X05 | Session scratchpad | Pi has none; the skills only warn against keeping durable state there | difference | The one reference (orchestrate) tells the agent not to use a scratchpad. | n/a |
+| X05 | Session scratchpad | Pi has none; the skills only warn against keeping durable state there | difference | No skill names a scratchpad. | n/a |

@@ -38,10 +38,7 @@ async function makeDirectory(): Promise<string> {
   return directory;
 }
 
-function useStore(
-  directory: string,
-  options?: OpenStoreOptions
-): Store {
+function useStore(directory: string, options?: OpenStoreOptions): Store {
   const store = openStore(directory, options);
   handles.push(store);
   return store;
@@ -92,7 +89,12 @@ async function makeGitStack(directory: string): Promise<{
   git({ repo, args: ["config", "user.email", "orch@example.com"] });
   git({
     repo,
-    args: ["remote", "add", "origin", `https://github.com/${FIXTURE_REPOSITORY}.git`],
+    args: [
+      "remote",
+      "add",
+      "origin",
+      `https://github.com/${FIXTURE_REPOSITORY}.git`,
+    ],
   });
   await writeFile(join(repo, "main.txt"), "main\n");
   git({ repo, args: ["add", "."] });
@@ -149,7 +151,8 @@ const FORGE_FIXTURES: Readonly<
   >
 > = {
   gh: {
-    fields: "number,state,headRefName,baseRefName,headRepository,headRepositoryOwner",
+    fields:
+      "number,state,headRefName,baseRefName,headRepository,headRepositoryOwner",
     listArgs: ["--limit", "1000"],
     row: ({ number, state, head, base, repository }, fallback) => ({
       number,
@@ -405,10 +408,7 @@ describe("Store", () => {
 
     expect(await store.init()).toEqual({ store: directory });
     const firstUnits = await readFile(join(directory, "units.tsv"), "utf8");
-    const firstLedger = await readFile(
-      join(directory, "ledger.tsv"),
-      "utf8"
-    );
+    const firstLedger = await readFile(join(directory, "ledger.tsv"), "utf8");
 
     expect(await store.init()).toEqual({ store: directory });
     expect(await readFile(join(directory, "units.tsv"), "utf8")).toBe(
@@ -462,13 +462,13 @@ describe("Store", () => {
       brief: "briefs/u1.md",
     });
     expect(await store.units.get("u1")).toEqual(updated);
-    expect(
-      await store.units.list({ state: "done", track: "build" })
-    ).toEqual([updated]);
+    expect(await store.units.list({ state: "done", track: "build" })).toEqual([
+      updated,
+    ]);
     expect(await store.units.counts()).toEqual({ done: 1, pending: 1 });
-    await expect(
-      store.units.add({ id: "u1", track: "build" })
-    ).rejects.toThrow("unit u1 already exists");
+    await expect(store.units.add({ id: "u1", track: "build" })).rejects.toThrow(
+      "unit u1 already exists"
+    );
     await expect(
       store.units.set({ id: "missing", state: "done" })
     ).rejects.toBeInstanceOf(NotFoundError);
@@ -566,9 +566,7 @@ describe("Store", () => {
     expect(stale).toEqual([String(exited.pid)]);
     await recovered.close();
     expect(
-      (await readdir(directory)).filter((name) =>
-        name.startsWith(".orch.lock")
-      )
+      (await readdir(directory)).filter((name) => name.startsWith(".orch.lock"))
     ).toEqual([]);
   });
 
@@ -653,9 +651,7 @@ await store.close();
       "id\ttrack\tstate\tbranch\tpr\tsha\tbrief\nA-unit\trace\tpending\t\t\t\t\n"
     );
     expect(
-      (await readdir(directory)).filter((name) =>
-        name.startsWith(".orch.lock")
-      )
+      (await readdir(directory)).filter((name) => name.startsWith(".orch.lock"))
     ).toEqual([]);
   });
 
@@ -910,19 +906,21 @@ promises.readdir = async (path) => {
   it.each([
     ["no lock", false],
     ["a stale lock", true],
-  ])("takes the lock when it finds %s and the writer that beats it to the create releases before its pid is read", async (_found, stale) => {
-    const { directory, store } = await initializedStore();
-    await store.close();
-    if (stale) {
-      await plantStaleLock(directory);
-    }
-    const flags = await makeDirectory();
+  ])(
+    "takes the lock when it finds %s and the writer that beats it to the create releases before its pid is read",
+    async (_found, stale) => {
+      const { directory, store } = await initializedStore();
+      await store.close();
+      if (stale) {
+        await plantStaleLock(directory);
+      }
+      const flags = await makeDirectory();
 
-    const writer = spawnWriter({
-      directory,
-      flags,
-      name: "A",
-      patch: `const { link, readFile } = promises;
+      const writer = spawnWriter({
+        directory,
+        flags,
+        name: "A",
+        patch: `const { link, readFile } = promises;
 let rival = "absent";
 promises.link = async (from, to) => {
   if (rival === "absent" && !existsSync(lock)) {
@@ -939,15 +937,16 @@ promises.readFile = async (path, ...rest) => {
   }
   return readFile(path, ...rest);
 };`,
-    });
-    expect(await writer.exited).toBe(0);
-    expect(await new Response(writer.stderr).text()).toBe("");
-    expect(await readFlags(flags)).toEqual({
-      "A.rival-released": "",
-      "A.held": "",
-    });
-    expect(await lockFiles(directory)).toEqual([]);
-  });
+      });
+      expect(await writer.exited).toBe(0);
+      expect(await new Response(writer.stderr).text()).toBe("");
+      expect(await readFlags(flags)).toEqual({
+        "A.rival-released": "",
+        "A.held": "",
+      });
+      expect(await lockFiles(directory)).toEqual([]);
+    }
+  );
 
   it("reports a lock it can never read as held by an unknown pid", async () => {
     const { directory, store } = await initializedStore();
@@ -974,9 +973,9 @@ promises.readFile = async (path, ...rest) => {
       force: true,
       onLockStolen: (holder) => stolen.push(holder),
     });
-    expect(
-      await forced.units.add({ id: "u1", track: "build" })
-    ).toMatchObject({ id: "u1" });
+    expect(await forced.units.add({ id: "u1", track: "build" })).toMatchObject({
+      id: "u1",
+    });
     expect(stolen).toEqual([String(process.pid)]);
     await forced.close();
     expect(await readdir(directory)).not.toContain(".orch.lock");
@@ -993,9 +992,10 @@ promises.readFile = async (path, ...rest) => {
         defaultAnswer: "wait",
       })
     ).toMatchObject({ kind: "open", id: "release" });
-    expect(
-      await store.standing.add({ line: "Never force push." })
-    ).toEqual({ number: 1, line: "Never force push." });
+    expect(await store.standing.add({ line: "Never force push." })).toEqual({
+      number: 1,
+      line: "Never force push.",
+    });
 
     const first = await store.status.render();
     expect(first.changed).toBe("first render");
@@ -1101,13 +1101,27 @@ promises.readFile = async (path, ...rest) => {
         const { directory, store } = await initializedStore();
         const stack = await makeGitStack(directory);
         await withFakeForge({
-          directory, forge,
+          directory,
+          forge,
           currentRows: forgeRows(forge, [
-            { number: 9, state: historicalState, head: "stack/open", base: "main" },
-            { number: 11, state: "open", head: "stack/open", base: "stack/closed" },
+            {
+              number: 9,
+              state: historicalState,
+              head: "stack/open",
+              base: "main",
+            },
+            {
+              number: 11,
+              state: "open",
+              head: "stack/open",
+              base: "stack/closed",
+            },
           ]),
           operation: async () => {
-            const frontier = await store.frontier.set({ repo: stack.repo, forge });
+            const frontier = await store.frontier.set({
+              repo: stack.repo,
+              forge,
+            });
             expect(frontier.prs.map((row) => row.pr)).toEqual([10, 13, 11, 14]);
             expect(frontier.lowestUnmerged).toBe(11);
           },
@@ -1119,13 +1133,21 @@ promises.readFile = async (path, ...rest) => {
       const { directory, store } = await initializedStore();
       const stack = await makeGitStack(directory);
       await withFakeForge({
-        directory, forge,
+        directory,
+        forge,
         currentRows: forgeRows(forge, [
-          { number: 11, state: "open", head: "stack/open", base: "stack/closed" },
+          {
+            number: 11,
+            state: "open",
+            head: "stack/open",
+            base: "stack/closed",
+          },
           { number: 12, state: "open", head: "stack/open", base: "main" },
         ]),
         operation: async () => {
-          await expect(store.frontier.set({ repo: stack.repo, forge })).rejects.toThrow("multiple pull requests");
+          await expect(
+            store.frontier.set({ repo: stack.repo, forge })
+          ).rejects.toThrow("multiple pull requests");
         },
       });
     });
@@ -1199,7 +1221,9 @@ promises.readFile = async (path, ...rest) => {
           },
         ]),
         operation: async () => {
-          await expect(store.frontier.set({ repo: stack.repo })).rejects.toThrow(
+          await expect(
+            store.frontier.set({ repo: stack.repo })
+          ).rejects.toThrow(
             "gh pr list --head stack/open output has an invalid PR row"
           );
         },
@@ -1352,9 +1376,9 @@ promises.readFile = async (path, ...rest) => {
         });
         git({ repo: stack.repo, args: ["branch", "-D", "stack/merged"] });
 
-        await expect(
-          store.frontier.set({ repo: stack.repo })
-        ).rejects.toThrow("git rev-parse");
+        await expect(store.frontier.set({ repo: stack.repo })).rejects.toThrow(
+          "git rev-parse"
+        );
         expect(await store.frontier.show()).toEqual(before);
         expect(before.generation).toBe(1);
       },
@@ -1461,16 +1485,9 @@ describe("orch CLI", () => {
     const directory = await makeDirectory();
     expect(runCli(["--store", directory, "init"]).code).toBe(0);
 
-    const missingRepo = runCli([
-      "--store",
-      directory,
-      "frontier",
-      "set",
-    ]);
+    const missingRepo = runCli(["--store", directory, "frontier", "set"]);
     expect(missingRepo.code).toBe(1);
-    expect(missingRepo.stderr).toContain(
-      "set --repo <dir> or ORCH_REPO"
-    );
+    expect(missingRepo.stderr).toContain("set --repo <dir> or ORCH_REPO");
 
     const userError = runCli([
       "--store",

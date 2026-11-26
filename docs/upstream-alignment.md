@@ -1,96 +1,38 @@
-# Cursor alignment, 0.9.106
+# Upstream alignment, 0.9.158
 
-Base: fork `189af4984c26d1634d515db13aab40c4e23a7ac4` (0.9.105). Previous pstack pin: `519d36aa98955bf680db01bcde5fdfba686dc901` (0.15.34). Latest pstack source: [Cursor `c742dd61706fbacc1b95f1a20b7b988cf096ce6c`](https://github.com/cursor/plugins/tree/c742dd61706fbacc1b95f1a20b7b988cf096ce6c/pstack), version 0.15.36. A fresh fetch on 2026-10-28 returned monorepo main `0f77cd5dab1e006de02d6ad221d5620de026473a`; its pstack tree matches the pinned commit. Only `ab1f702ce8e8b6557edb56b09f52cde8bfb83f17` and `c742dd6` touch pstack in this range. Other component pins are unchanged.
+Base: fork `2d9eb15cddb13eec7cac7238cab71a08954d1d8d` (0.9.106, PR #7), merge-base `356c6e0`. Previous port pin: `michael-denyer/pstack-claude` main at the merge-base. Latest port source: `michael-denyer/pstack-claude` main `1ab6b82cbacb04897094e1a3870357882e1e616d` (0.9.158, 2026-11-26), itself synced to Cursor `ca782ed8b3c2c521cead8e1720d55c3a5dbf2347` (0.15.48). GitHub's fork compare reported 173 upstream commits the fork lacked, 14 fork commits upstream lacked, and 300 changed files. The merge produced 772 auto-merged paths and 44 conflicts: 34 content and 10 modify/delete, every one of them upstream-deleted and fork-modified.
 
-The latest matching feedback is [kb-personal #58, updated October 28](https://github.com/vsumner/kb-personal/issues/58), with no comments. Searches for pstack and fork found no newer matching issue. The two installation defects are resolved in 0.9.105; this update preserves those implementations. The outstanding feedback asks for run-proven review findings, an explicit orchestration decision, and a bounded project pilot. Offline checks below do not replace that future project pilot.
+This is a port alignment, not a Cursor sync. `tools/sync.mjs` was not run against Cursor; upstream had already synced 0.15.36 through 0.15.48, and the fork's own Cursor syncs (PR #4, PR #7) had independently ported 0.15.33 through 0.15.36 from the same source. Where both sides ported the same Cursor text, upstream's later refinement wins; the fork keeps only what upstream never carried. `tools/upstream.json` now pins `ca782ed` and `tools/substitutions.json` is upstream's 90-rule set, which `bun tools/sync.mjs --check-rules` confirms matches at the pin.
 
-## Every upstream file changed since 0.15.34
+## Retained fork decisions
 
-Paths are relative to upstream `pstack/`. This is a selective multi-host alignment, not full upstream parity.
-
-| Upstream file | Decision and reason |
+| Path | Decision and reason |
 | --- | --- |
-| `.cursor-plugin/plugin.json` | Excluded Cursor manifest; generator versions the supported host manifests. |
-| `README.md` | Keep multi-host installation and update the actual fork reference descriptions. |
-| `docs/guide/04-design.md` | Excluded guide. Interrogate itself adopts demonstrated failures and lead reproduction. |
-| `docs/guide/07-overnight.md` | Excluded guide. Retain the installed durable helper contract rather than Cursor Project-only storage. |
-| `docs/guide/10-recipes-and-pitfalls.md` | Excluded guide. Installed recipes use Dropped findings and the no-merge trigger. |
-| `plugin.json` | Excluded upstream manifest; retain existing host packaging. |
-| `skills/arena/SKILL.md` | Retain configured alias seats and effort/provider choices. Try the saved judge pool in preference order and disclose reduced diversity. Do not replace explicit aliases to manufacture another family. |
-| `skills/interrogate/SKILL.md` | Adopt run-proven failures and coordinator reruns; adapt native isolated reviewers, saved choices, authority and blocked-evidence reporting. Retain the generated reviewer table. |
-| `skills/interrogate/references/code-quality-review.md` | Delete the superseded review lens with upstream. |
-| `skills/interrogate/references/lead-judgment.md` | Delete the superseded judgment buckets with upstream. |
-| `skills/interrogate/references/reviewer-prompt.md` | Delete the superseded template with upstream. The new evidence brief lives in the skill. |
-| `skills/interrogate/references/rubric.md` | Delete the superseded rubric with upstream. |
-| `skills/ketchup-video/SKILL.md` | Still excluded; video remains optional and absent. |
-| `skills/poteto-help/SKILL.md` | Adopt the no-merge trigger; retain links to installed playbooks and omit absent video. |
-| `skills/poteto-help/references/recipes.md` | Adopt Dropped-list and no-merge wording. |
-| `skills/poteto-mode/SKILL.md` | Adopt the initial intent restatement and pre-measurement decision rule; retain explicit authority, saved model/effort semantics, current topology and operator merge policy. |
-| `skills/poteto-mode/playbooks/autonomous-run.md` | Adopt the goal-related boundary for mid-run discoveries. |
-| `skills/poteto-mode/playbooks/autopilot-full.md` | Adopt evidence-based blockers, related concurrent-change rebasing and finished-unit externalization. Retain operator merges, bounded fix rounds and verification for instruction changes. |
-| `skills/poteto-mode/playbooks/autopilot-stack.md` | Retain the existing single topology writer, chain safety, no-merge authority, STACK-READY report and loop precedence. |
-| `skills/poteto-mode/playbooks/babysit.md` | Retain its pinned writable helper path and existing triage; do not introduce the conflicting upstream watcher path. |
-| `skills/poteto-mode/playbooks/multi-phase-plan.md` | Retain durable location, topology-owner handoff, operator merge policy and required verification. |
-| `skills/poteto-mode/playbooks/opening-a-pr.md` | Adopt removal of the redundant automatic Interrogate call; retain explicit independent-review gates and owner babysitting exception. |
-| `skills/poteto-mode/playbooks/orchestrate.md` | Retain durable state, recovery, ownership, frontier and revision-bound verdicts. Prefer equivalent native tracking/events; a wake-up is not a completion supervisor. Cursor's Project tracker/store is not a portable replacement. |
-| `skills/poteto-mode/scripts/orch/orch.test.ts` | Retain unchanged as port-only regression coverage after upstream deletion. |
-| `skills/poteto-mode/scripts/orch/orch.ts` | Retain unchanged as the port-only bookkeeping entrypoint after upstream deletion. It does not own worker lifecycle. |
-| `skills/poteto-mode/scripts/orch/store.ts` | Retain unchanged as port-only durable state and recovery after upstream deletion. |
-| `skills/poteto-mode/scripts/package.json` | Retain orch in the test command and the existing locked helper package. |
-| `skills/principle-explain-the-number/SKILL.md` | Adopt the decision and noise-floor rule before measurement. |
-| `skills/setup-pstack/SKILL.md` | Retain active-host setup, saved alias/model/effort choices and routing preferences; do not adopt forced cross-family replacements. |
+| `poteto-mode/scripts/orch/orch.ts`, `store.ts`, `orch.test.ts` | Keep. Upstream deleted them in 0.9.123 for Cursor's Project-tracker Orchestrate, which is not portable. `orch.ts` had no conflict only because the fork never edited it; it is restored from `main` beside the two that did conflict. The three files are Prettier-formatted so the vendored-tooling job passes. `scripts/package.json` runs `bun test orch watch-pr`; the auto-merge had dropped `orch` with upstream's edit. |
+| `poteto-mode/playbooks/orchestrate.md` | Keep. The fork's pinned-helper path and durable-state text are retained. The generator-owned lead line is removed because the generator rejects it outside a listed playbook, the `why/references/epistemics.md` link is inlined from the rule `recall` now carries, and `poteto-mode/SKILL.md` lists Orchestrate again so the playbook is reachable. |
+| `tools/runtimes.mjs` (Codex `dispatch`) | Keep the fork's dispatch-time sheet read beside upstream's `spawn_agent` schema note. The generator stamps it into `codex-tools.md`, so the Codex mapping carries the same policy. |
+| `setup-pstack/references/runtimes.md` | Policy fork, new entry. Upstream's table row and Step 7 paste the model rows into `<codex-home>/AGENTS.md`; the fork reads the sheet at dispatch and leaves global `AGENTS.md` unchanged. |
+| `interrogate/SKILL.md` | Upstream's arena-based fan-out and Verify structure, with the fork's kb-personal #58 governance grafted in: probes stay within existing resource, action and spending authority; blocked checks are reported as blocked; the review gate stays closed until its evidence lands; saved model choices are not replaced to manufacture diversity; `Reviewers` and `Blocked` output items. |
+| `poteto-mode/playbooks/babysit.md` | Upstream's shorter structure, with `watch-pr` resolved through the pinned writable `HELPER_SCRIPTS` from `operational-helpers.md` rather than the installed plugin. |
+| `poteto-mode/references/codex-tools.md` | Upstream's text, with the fork's `helper-prerequisites.md` and `operational-helpers.md` pointer kept before upstream's scripts overview: a local-path Pi package must not bootstrap Bun dependencies inside its immutable snapshot. |
+| `docs/reference.md` (Codex hook trust) | Keep the fork's rule that installation and explicit skill use do not require hook trust, adding upstream's hook name. |
+| `CONTRIBUTING.md` | Keep the fork's `### Restricted-environment checks` section and the explicit-authorization fence on the live-Pi test; adopt upstream's Pi 1.5.1 `PI_FLOOR` guidance. |
+| `README.md` (Pi and Codex sections) | Keep the pointers to `docs/installing-pi-codex.md`; state that the generic `pi install git:…` line installs upstream's `main`; drop `npx open-pstack` from these two sections because the installer registry hardcodes `michael-denyer/pstack-claude`. |
+| `CHANGES.md` | Upstream's 0.9.158 through 0.9.103 entries, a `### Fork alignment to upstream 0.9.158` section inside the 0.9.158 entry, and the fork's 0.9.103 through 0.9.106 entries demoted to `###` under `### Fork history before this alignment` so the generator's one-heading-per-version rule holds. |
+| `tools/forks.json` | Union of both sides. Nine entries whose paths this merge deleted are pruned (`check-plan.*`, the three `reflect` reviewers, `why/references/*`, `architect/references/rationale-template.md`); `orchestrate.md` and `arena/SKILL.md` are pruned because they are now port-only and unchanged respectively; the `why` for `poteto-mode/SKILL.md` and `babysit.md` names the retained deltas. The dry-run at the pinned SHA passes for `pstack`, `cursor-team-kit` and `thermos`. |
 
-## Additional bounded changes and retained decisions
+## Adopted from upstream in place of fork text
 
-Adapted [backnotprop `02b59d7f73a693d40ad2090d00789f3e3a772151`](https://github.com/backnotprop/pstack/commit/02b59d7f73a693d40ad2090d00789f3e3a772151) only for no-comments: preserve unresolved external-rule comments, continue accepted work after one rejected retry, and report incomplete work explicitly. The canonical agent prompt generates its portable skills-only copy. No switch to that distribution or its models.
+The 0.15.43 shorter-skills compression of `poteto-mode`, `opening-a-pr`, `babysit`, `principle-explain-the-number` and `recall`; one-file `reflect` and `why`, so the fork's three reviewer references are deleted and the `why` references with them; the `HOLD`-based `no-comments` and `comment-sicko`, which implements the fork's backnotprop adaptation under upstream's name; `codex-session-effort.mjs` and schema-gated `spawn_agent` fields, which read the session's real effort instead of the fork's passive inheritance that could run a child at a selected model's default; Pi 1.5.1 as the oldest supported Pi with `PI_FLOOR` in `tools/pi-package.mjs`; per-skill project-skill-location notes in `pi-tools.md` and `codex-tools.md`; upstream's Pi mapping in place of the fork's Pi 1.4 text (which claimed `pi mcp list` does not exist; Pi 1.6.1 has it); the Codex prompt stubs, deleted since current Codex never loads them; and upstream's statechart scripts as declared port features, where PR #7 excluded them from the fork's own Cursor sync.
 
-The CI matrix retains Pi 1.1.0 with the existing October 11 dependency cutoff and adds Pi 1.4.0 with an October 22 cutoff. Public npm metadata checked on October 28 reports latest stable 1.4.0, published October 21 at 22:48:58 UTC. The matrix checks types, catalog, startup, mock scheduler and native discovery without model calls. It does not update the installed Pi CLI or Companion dependencies.
+## Fork-only files after this merge
 
-Reflection's retained dependency closure and writable pinned-helper setup stay unchanged. Statechart, video and Benny automation stay excluded. Shipping, messages, ticket changes, deployment, provider spending and user settings remain governed by existing authorization. No publication or global installation is part of this patch.
+`docs/installing-pi-codex.md`, `poteto-mode/references/{project-skills,local-skill-overrides,operational-helpers,helper-prerequisites}.md`, `poteto-mode/playbooks/{orchestrate,authoring-a-skill}.md`, `reflect/scripts/copy-local-skill.mjs` and the fork's test suites remain. `project-skills.md` is still linked from eleven files. `helper-prerequisites.md` no longer lists `check-plan.mjs`.
 
-## Validation boundaries
+## Test contracts
 
-The generator and ownership check validate packaging and intentional forks. Native Pi/Codex catalogs validate metadata and selection. Fake-forge helpers validate pinned bootstrap, resumption and installation immutability. Mock loop tests validate scheduling and cancellation decisions. Independent instruction probes establish only the exercised scenarios. None is a live paid-provider run or proof of an unattended multi-outcome program. A bounded project pilot remains the next workflow evidence step.
+The fork's instruction-output contracts are retargeted to where upstream now states the same behavior, not deleted: `host-compatibility.test.mjs` reads the Codex wiring from `runtimes.md`, the effort precedence from upstream's "Match the model to the job", and `completed` semantics from upstream's "notified, not that the process exited"; `project-skills.test.mjs` reads the Pi and Codex driver roots from the per-skill notes; `local-skill.test.mjs` and `codex-discovery.test.mjs` copy `setup-pstack` instead of `reflect` as the nested-dependency fixture; `installer.test.mjs` exempts `pi` and `codex` from README parity because the fork documents them through the pinned setup.
 
----
+## Evidence
 
-# Prior bounded Cursor alignment, 0.9.104
-
-Base: fork `c6c138bd0e3e010f18ba5fd3c43c94e402d1b164`. Previous pstack component pin: `7b353f78f6ec193bdbe48ed8059444eb09b6878e`. Reviewed target: [Cursor plugins `519d36aa98955bf680db01bcde5fdfba686dc901`](https://github.com/cursor/plugins/tree/519d36aa98955bf680db01bcde5fdfba686dc901/pstack), pstack 0.15.34. Cursor main still matched that target when fetched for this update. Other component pins are unchanged.
-
-This is a partial alignment using the existing three-way sync, substitutions, declared forks and generator. It preserves Lauren Tan's upstream authorship, the existing licenses and the port's Pi/Codex/Claude support. It does not claim full latest parity. The two new optional skill trees, `statechart/` and `ketchup-video/`, are excluded in `tools/upstream.json`; no new verifier, renderer or video dependencies are imported.
-
-## Every changed existing upstream file
-
-Paths below are relative to upstream `pstack/`. Each row was compared individually with the fork, including excluded documentation and manifests.
-
-| Upstream file | Decision and reason |
-| --- | --- |
-| `.cursor-plugin/plugin.json` | Excluded Cursor manifest. Fork manifests are versioned by the existing generator. |
-| `README.md` | Keep fork README; retain its multi-host installation. Reflect the sharpen contract in fork reference docs. Cursor/Claude auto-update advice does not replace immutable fork pins. |
-| `docs/guide/02-poteto-mode.md` | Excluded upstream guide; adopt sharpen's prompt-only behavior in the actual skill and fork reference. |
-| `docs/guide/06-verify-and-ship.md` | Excluded guide. Defer its statechart link; retain the fork's scoped verification labels and artifact binding. |
-| `docs/guide/10-recipes-and-pitfalls.md` | Excluded guide; adopt sharpen recipe clarification, defer video cross-link. |
-| `plugin.json` | Keep intentional legacy host manifests. Do not introduce a competing portable root manifest on Codex 0.163. |
-| `skills/create-formal-verification-skill/SKILL.md` | Defer only the new mandatory statechart instruction because that optional skill is absent. Retain host placement, scope and checker/artifact identity guidance. |
-| `skills/poteto-help/SKILL.md` | Adopt sharpen description; omit links to absent statechart/video skills. |
-| `skills/poteto-help/references/recipes.md` | Adopt prompt-before-send recipe. |
-| `skills/poteto-mode/scripts/check-plan.mjs` | Adopt matching multi-backtick code-span parsing, preserving the fork's fenced-code handling. |
-| `skills/poteto-mode/scripts/check-plan.test.ts` | Adopt regression cases for code spans and prose outside them. |
-| `skills/poteto-mode/scripts/orch/orch.test.ts` | Adopt replacement historical PR and multiple-active-PR regressions using existing forge fixtures. |
-| `skills/poteto-mode/scripts/orch/store.ts` | Adapt sole-active-PR preference after the fork's head-repository filter; historical anchors remain when no local PR is open. |
-| `skills/poteto-mode/scripts/watch-pr/github.test.ts` | Preserve existing repository-identity, fork/default-branch, duplicate-head and cycle cases instead of adding weaker duplicate fixtures. |
-| `skills/poteto-mode/scripts/watch-pr/github.ts` | Existing head repository identity already covers the upstream cross-repository boolean fix, with cycle and ambiguity rejection. Keep it. |
-| `skills/poteto-mode/scripts/watch-pr/policy.test.ts` | Preserve existing shared-deadline and retry coverage; add a disabled-deadline control. |
-| `skills/poteto-mode/scripts/watch-pr/policy.ts` | Existing monotonic deadline already caps discovery, query, retry and normal polling. Keep it rather than introduce a second deadline. |
-| `skills/poteto-mode/scripts/watch-pr/types.ts` | Preserve headRepository and deadline failure types, which the stronger existing implementation needs. |
-| `skills/poteto-mode/scripts/worktree-audit.sh` | Still excluded. Fork's Node `worktree-audit.mjs` uses native stat timestamps and date formatting, avoiding BSD/GNU flag differences; preserve its ignored/untracked/reflog and transcript handling. |
-| `skills/reflect/SKILL.md` | Adapt no-cache editing and destination-before-approval to host project/personal roots; include pinned snapshots and duplicate-discovery care. No automatic registration, PR or push. |
-| `skills/sharpen/SKILL.md` | Adopt explicit prompt rewrite; it returns the prompt without doing the task. |
-| `skills/swarm/SKILL.md` | Adopt corrected numbering and result-table wording; preserve local dispatch/worktree and host model/effort policies. |
-
-## Native responsibilities and validation limits
-
-Host discovery, model settings, permissions, trust and Codex worker lifecycle remain host-owned. The Pi extension continues to compose RPC child processes, steering, settlement, cancellation and guarded worktree retention because Pi 1.4 core does not provide this orchestration policy. This update does not replace those safeguards or add another loader, process manager, updater or orchestration kernel.
-
-Use `bun tools/test-suites.mjs safe` for the explicit restricted-safe suite. Helper tests are a separate package under `plugins/pstack/skills/poteto-mode/scripts/`; inspect them and bootstrap locked dependencies only in an authorized disposable writable copy. Native Pi/Codex discovery checks validate registration and metadata, not live model compliance. PR/forge tests use local fakes, not real shipping. Process-identity/orphan lifecycle checks requiring restricted inspection remain unrun. No live provider turn, security/trust change, global installation or optional statechart/video execution is part of this alignment.
+Offline, on this checkout with Bun 1.4.4, Node 26.7.0, Pi 1.6.1 and `PI_PACKAGE_DIR=plugins/node_modules/@earendil-works/pi-coding-agent`: `bun tools/generate.mjs --check` (81 generated files current), `bun tools/sync.mjs --check-rules` (90 rules match), the fork-registry dry-run for all three components, `bun test tests/` (2318 pass, 0 fail, 180 skip), the Pi catalog/runtime/slash/project-skills suites, `bun tools/typecheck-pi.mjs`, the vendored `scripts` job (`bun run typecheck`, `bun test orch watch-pr` at 336 pass, Prettier clean in scope), `tests/worktree-audit.test.mjs` at 175 pass, and markdownlint at 0 errors. Not run here: the lychee link job (Docker was not started), shellcheck (not installed), Windows jobs, and any live provider call. No model choice, effort, routing, trust setting, installed CLI or Companion dependency changed.
